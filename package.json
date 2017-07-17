@@ -22,7 +22,8 @@
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch",
     "release": "npm run build && npm version",
-    "release:quick": "npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch"
+    "release:quick": "npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch",
+    "postversion": "npm publish"
   },
   "dependencies": {
     "paypal-rest-sdk": "^1.7.1"
