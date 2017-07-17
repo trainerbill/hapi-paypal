@@ -5,7 +5,7 @@ import * as pkg from "../package.json";
 
 export interface IHapiPayPalOptions {
     sdk: paypal.IConfigureOptions;
-    routes: hapi.RouteConfiguration[];
+    routes: hapi.RouteConfigurationPartial[];
     webhooks: paypal.IWebhookRequest;
 }
 
@@ -18,7 +18,7 @@ export class HapiPayPal {
     private webhookEvents: paypal.IEventType[];
     private webhookConfig: paypal.IWebhookRequest;
     private webhook: paypal.IWebhook;
-    private routes: hapi.RouteConfiguration[] = [];
+    private routes: hapi.RouteConfigurationPartial[] = [];
 
     constructor() {
         this.register.attributes = {
@@ -70,7 +70,7 @@ export class HapiPayPal {
 
     }
 
-    private buildRoute(route: hapi.RouteConfiguration): hapi.RouteConfiguration {
+    private buildRoute(route: hapi.RouteConfigurationPartial): hapi.RouteConfiguration {
         const handler = route.handler as hapi.RouteHandler;
         if (!route.config.id) {
             throw new Error("You must set route.config.id");
@@ -103,7 +103,7 @@ export class HapiPayPal {
                 break;
         }
         this.routes.push(route);
-        return route;
+        return route as hapi.RouteConfiguration;
     }
 
     private getMockData(type: string): any {

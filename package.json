@@ -1,12 +1,17 @@
 {
   "name": "hapi-paypal",
   "version": "0.0.1",
-  "description": "hapi-paypal",
+  "description": "A hapi plugin to interface with PayPal Rest API's and webhooks.",
   "license": "MIT",
-  "repository": "",
-  "author": "",
+  "repository": "https://github.com/trainerbill/hapi-paypal",
+  "author": "Andrew Throener",
   "keywords": [
-    ""
+    "HAPI",
+    "hapi",
+    "PayPal",
+    "REST Api",
+    "Webhooks",
+    "webhooks"
   ],
   "files": [
     "lib"

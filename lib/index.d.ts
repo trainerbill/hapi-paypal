@@ -2,7 +2,7 @@ import * as hapi from "hapi";
 import * as paypal from "paypal-rest-sdk";
 export interface IHapiPayPalOptions {
     sdk: paypal.IConfigureOptions;
-    routes: hapi.RouteConfiguration[];
+    routes: hapi.RouteConfigurationPartial[];
     webhooks: paypal.IWebhookRequest;
 }
 export interface IPayPalRouteHandler extends hapi.RouteHandler {
