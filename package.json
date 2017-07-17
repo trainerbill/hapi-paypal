@@ -20,7 +20,9 @@
     "test": "npm run build && mocha --compilers ts:ts-node/register --recursive 'test/**/*-spec.ts'",
     "coverage": "nyc --include='src/**/*.ts' --reporter=text --reporter=html --reporter=lcov mocha --compilers ts:ts-node/register --recursive 'test/**/*.test.ts'",
     "watch": "npm run build -- --watch",
-    "watch:test": "npm run test -- --watch"
+    "watch:test": "npm run test -- --watch",
+    "release": "npm run build && npm version",
+    "release:quick": "npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch"
   },
   "dependencies": {
     "paypal-rest-sdk": "^1.7.1"

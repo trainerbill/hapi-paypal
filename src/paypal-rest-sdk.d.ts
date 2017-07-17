@@ -41,7 +41,7 @@ declare module "paypal-rest-sdk" {
         create_time: string;
     }
 
-    type ILink = {
+    interface ILink {
         href: string;
         method: string;
         rel: string;
@@ -65,6 +65,7 @@ declare module "paypal-rest-sdk" {
         event_types: [IEventType];
         id: string;
         links: [ILink];
+        url: string;
     }
 
     export interface IPaymentResponse extends IResponse {
@@ -77,7 +78,7 @@ declare module "paypal-rest-sdk" {
         transactions: [ ITransaction ];
     }
 
-    type ICallbackFunction<T> = ( err: Error, response: T) => any;
+    type ICallbackFunction<T> = ( err: any, response: T) => any;
 
     export interface IConfigureOptions {
         client_id: string;
@@ -103,17 +104,13 @@ declare module "paypal-rest-sdk" {
             list(cb: ICallbackFunction<IWebhookResponse>): void;
             create(webhook: IWebhookRequest, cb: ICallbackFunction<any>): void;
             replace(id: string, webhook: any, cb: ICallbackFunction<any>): void;
-        },
+        };
         webhookEventType: {
             list(cb: ICallbackFunction<IListWebookEventsResponse>): void;
-        }
+        };
     }
-
-    
-
-    
 
     export function configure(options: IConfigureOptions): void;
     export let payment: IPayment;
-    export let notification: INotification
+    export let notification: INotification;
 }

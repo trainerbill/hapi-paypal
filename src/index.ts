@@ -28,7 +28,7 @@ export class HapiPayPal {
     }
 
     // tslint:disable-next-line:max-line-length
-    public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction): void => {
+    public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
 
         const sdkSchema = Joi.object().keys({
             client_id: Joi.string().alphanum().min(10).required(),
@@ -71,7 +71,7 @@ export class HapiPayPal {
     }
 
     private buildRoute(route: hapi.RouteConfiguration): hapi.RouteConfiguration {
-        let handler = route.handler as hapi.RouteHandler;
+        const handler = route.handler as hapi.RouteHandler;
         if (!route.config.id) {
             throw new Error("You must set route.config.id");
         }
@@ -157,7 +157,7 @@ export class HapiPayPal {
         }
     }
 
-    private getWebhookEventTypes() {
+    private getWebhookEventTypes(): Promise<paypal.IEventType[]> {
         return new Promise((resolve, reject) => {
             paypal.notification.webhookEventType.list((error, webhooks) => {
                 if (error) {
@@ -169,7 +169,7 @@ export class HapiPayPal {
         });
     }
 
-    private getAccountWebhooks() {
+    private getAccountWebhooks(): Promise<paypal.IWebhook[]> {
         return new Promise((resolve, reject) => {
             paypal.notification.webhook.list((error, webhooks) => {
                 if (error) {
@@ -181,7 +181,7 @@ export class HapiPayPal {
         });
     }
 
-    private async createWebhook() {
+    private createWebhook() {
         const webhookConfig = this.webhookConfig;
         return new Promise((resolve, reject) => {
             paypal.notification.webhook.create(webhookConfig, (error, webhooks) => {
@@ -202,7 +202,7 @@ export class HapiPayPal {
                 path: "/event_types",
                 value: webhookConfig.event_types,
             }], (error, webhooks) => {
-                if (error) {
+                if (error && error.response.name !== "WEBHOOK_PATCH_REQUEST_NO_CHANGE") {
                     reject(error);
                 } else {
                     resolve();
