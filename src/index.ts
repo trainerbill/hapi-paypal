@@ -3,22 +3,25 @@ import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
 
+export type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
+
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes: IPayPalRouteConfiguration[];
+    routes: [Partial<IPayPalRouteConfiguration>];
     webhook: paypal.notification.webhook.Webhook;
 }
 
-export interface IPayPalRouteConfiguration {
-    method?: string;
-    path?: string;
+export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: hapi.RouteHandler | IPayPalRouteHandler;
-    config: {
-        id: string;
-    };
 }
 
-export type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, response: any) => void;
+export type IPayPalRouteHandler = (
+    request: hapi.Request,
+    reply: hapi.ReplyNoContinue,
+    error: any,
+    response: any) => void;
 
 export class HapiPayPal {
 
@@ -82,20 +85,23 @@ export class HapiPayPal {
 
     }
 
-    private buildRoute(route: IPayPalRouteConfiguration): hapi.RouteConfiguration {
+    private buildRoute(route: Partial<IPayPalRouteConfiguration>): hapi.RouteConfiguration {
         const handler = route.handler as hapi.RouteHandler;
+        let nHandler: hapi.RouteHandler;
+
         if (!route.config.id) {
             throw new Error("You must set route.config.id");
         }
+
         switch (route.config.id) {
             case "paypal_payment_create":
                 route.path = route.path || "/paypal/payment/create";
                 route.method = route.method || "POST";
-                const nHandler: hapi.RouteHandler = (request, reply) => {
+                nHandler = (request, reply) => {
                     const temp = arguments;
                     paypal.payment.create(this.getMockData("payment_create"), (error, payment) => {
                         if (handler) {
-                            handler.apply(this, [request, reply, error || payment]);
+                            handler.apply(this, [request, reply, error, payment]);
                         } else {
                             error ? reply(error) : reply(payment);
                         }
@@ -107,11 +113,12 @@ export class HapiPayPal {
             case "paypal_webhooks_listen":
                 route.method = "POST";
                 route.path = route.path || "/paypal/webhooks/listen";
-                route.handler = (request: hapi.Request, reply: hapi.ReplyNoContinue) => {
+                nHandler = (request, reply) => {
                     const temp = arguments;
                     handler.apply(this, [request, reply]);
                     reply("Got it!");
                 };
+                route.handler = nHandler;
                 break;
         }
         this.routes.push(route as hapi.RouteConfiguration);

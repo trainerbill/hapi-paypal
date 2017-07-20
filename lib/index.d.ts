@@ -1,19 +1,17 @@
 import * as hapi from "hapi";
 import * as paypal from "paypal-rest-sdk";
+export declare type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes: IPayPalRouteConfiguration[];
+    routes: [Partial<IPayPalRouteConfiguration>];
     webhook: paypal.notification.webhook.Webhook;
 }
-export interface IPayPalRouteConfiguration {
-    method?: string;
-    path?: string;
+export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: hapi.RouteHandler | IPayPalRouteHandler;
-    config: {
-        id: string;
-    };
 }
-export declare type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, response: any) => void;
+export declare type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, error: any, response: any) => void;
 export declare class HapiPayPal {
     private webhookEvents;
     private webhook;
