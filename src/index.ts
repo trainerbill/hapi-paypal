@@ -4,21 +4,27 @@ import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
 
 export interface IHapiPayPalOptions {
-    sdk: paypal.IConfigureOptions;
-    routes: hapi.RouteConfigurationPartial[];
-    webhooks: paypal.IWebhookRequest;
+    sdk: any;
+    routes: IPayPalRouteConfiguration[];
+    webhook: paypal.notification.webhook.Webhook;
 }
 
-export interface IPayPalRouteHandler extends hapi.RouteHandler {
-    (response: any): void;
+export interface IPayPalRouteConfiguration {
+    method?: string;
+    path?: string;
+    handler?: hapi.RouteHandler | IPayPalRouteHandler;
+    config: {
+        id: string;
+    };
 }
+
+export type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, response: any) => void;
 
 export class HapiPayPal {
 
-    private webhookEvents: paypal.IEventType[];
-    private webhookConfig: paypal.IWebhookRequest;
-    private webhook: paypal.IWebhook;
-    private routes: hapi.RouteConfigurationPartial[] = [];
+    private webhookEvents: paypal.notification.NotificationEventType[];
+    private webhook: paypal.notification.webhook.Webhook;
+    private routes: hapi.RouteConfiguration[] = [];
 
     constructor() {
         this.register.attributes = {
@@ -31,12 +37,15 @@ export class HapiPayPal {
     public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
 
         const sdkSchema = Joi.object().keys({
-            client_id: Joi.string().alphanum().min(10).required(),
-            client_secret: Joi.string().alphanum().min(10).required(),
+            client_id: Joi.string().min(10).required(),
+            client_secret: Joi.string().min(10).required(),
             mode: Joi.string().valid("sandbox", "live").required(),
         });
 
-        Joi.validate(options.sdk, sdkSchema);
+        const sdkValidate = Joi.validate(options.sdk, sdkSchema);
+        if (sdkValidate.error) {
+            throw sdkValidate.error;
+        }
 
         paypal.configure({
             client_id: options.sdk.client_id,
@@ -46,22 +55,25 @@ export class HapiPayPal {
 
         options.routes.forEach((route) =>  server.route(this.buildRoute(route)));
 
-        if (options.webhooks) {
+        if (options.webhook) {
             const webhooksSchema = Joi.object().keys({
-                enable: Joi.array().min(1).required(),
-                url: Joi.string().uri(),
+                event_types: Joi.array().min(1).required(),
+                url: Joi.string().uri({ scheme: ["https"] }).required(),
             });
 
-            Joi.validate(options.webhooks, webhooksSchema);
+            const validate = Joi.validate(options.webhook, webhooksSchema);
+            if (validate.error) {
+                throw validate.error;
+            }
 
-            this.webhookConfig = options.webhooks;
+            this.webhook = options.webhook;
 
             const webhookRoute = options.routes.filter((route) => route.config.id === "paypal_webhooks_listen")[0];
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
 
-            this.webhookConfig.url += webhookRoute.path;
+            this.webhook.url += webhookRoute.path;
 
             this.enableWebhooks();
         }
@@ -70,7 +82,7 @@ export class HapiPayPal {
 
     }
 
-    private buildRoute(route: hapi.RouteConfigurationPartial): hapi.RouteConfiguration {
+    private buildRoute(route: IPayPalRouteConfiguration): hapi.RouteConfiguration {
         const handler = route.handler as hapi.RouteHandler;
         if (!route.config.id) {
             throw new Error("You must set route.config.id");
@@ -95,14 +107,14 @@ export class HapiPayPal {
             case "paypal_webhooks_listen":
                 route.method = "POST";
                 route.path = route.path || "/paypal/webhooks/listen";
-                route.handler = (request, reply) => {
+                route.handler = (request: hapi.Request, reply: hapi.ReplyNoContinue) => {
                     const temp = arguments;
                     handler.apply(this, [request, reply]);
                     reply("Got it!");
                 };
                 break;
         }
-        this.routes.push(route);
+        this.routes.push(route as hapi.RouteConfiguration);
         return route as hapi.RouteConfiguration;
     }
 
@@ -146,18 +158,17 @@ export class HapiPayPal {
         try {
             this.webhookEvents = await this.getWebhookEventTypes();
             const accountWebHooks = await this.getAccountWebhooks();
-            this.webhook = accountWebHooks.filter((hook) => hook.url === this.webhookConfig.url)[0];
+            this.webhook = accountWebHooks.filter((hook) => hook.url === this.webhook.url)[0];
             if (!this.webhook) {
-                await this.createWebhook();
-            } else {
-                await this.replaceWebhook();
+                this.webhook = await this.createWebhook();
             }
+            this.webhook = await this.replaceWebhook();
         } catch (err) {
             throw err;
         }
     }
 
-    private getWebhookEventTypes(): Promise<paypal.IEventType[]> {
+    private getWebhookEventTypes(): Promise<paypal.notification.NotificationEventType[]> {
         return new Promise((resolve, reject) => {
             paypal.notification.webhookEventType.list((error, webhooks) => {
                 if (error) {
@@ -169,7 +180,7 @@ export class HapiPayPal {
         });
     }
 
-    private getAccountWebhooks(): Promise<paypal.IWebhook[]> {
+    private getAccountWebhooks(): Promise<paypal.notification.webhook.Webhook[]> {
         return new Promise((resolve, reject) => {
             paypal.notification.webhook.list((error, webhooks) => {
                 if (error) {
@@ -181,31 +192,31 @@ export class HapiPayPal {
         });
     }
 
-    private createWebhook() {
-        const webhookConfig = this.webhookConfig;
+    private createWebhook(): Promise<paypal.notification.webhook.Webhook> {
+        const webhookConfig = this.webhook;
         return new Promise((resolve, reject) => {
-            paypal.notification.webhook.create(webhookConfig, (error, webhooks) => {
+            paypal.notification.webhook.create(webhookConfig, (error, webhook) => {
                 if (error) {
                     reject(error);
                 } else {
-                    resolve();
+                    resolve(webhook);
                 }
             });
         });
     }
 
-    private replaceWebhook() {
-        const webhookConfig = this.webhookConfig;
+    private replaceWebhook(): Promise<paypal.notification.webhook.Webhook> {
+        const webhookConfig = this.webhook;
         return new Promise((resolve, reject) => {
             paypal.notification.webhook.replace(this.webhook.id, [{
                 op: "replace",
                 path: "/event_types",
                 value: webhookConfig.event_types,
-            }], (error, webhooks) => {
+            }], (error, webhook) => {
                 if (error && error.response.name !== "WEBHOOK_PATCH_REQUEST_NO_CHANGE") {
                     reject(error);
                 } else {
-                    resolve();
+                    resolve(webhook);
                 }
             });
         });
