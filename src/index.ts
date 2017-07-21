@@ -181,8 +181,8 @@ export class HapiPayPal {
         try {
             this.webhookEvents = await this.getWebhookEventTypes();
             const accountWebHooks = await this.getAccountWebhooks();
-            this.webhook = accountWebHooks.filter((hook) => hook.url === this.webhook.url)[0];
-            if (!this.webhook) {
+            this.webhook = accountWebHooks.filter((hook) => hook.url === this.webhook.url)[0] || this.webhook;
+            if (!this.webhook.id) {
                 this.webhook = await this.createWebhook();
             }
             this.webhook = await this.replaceWebhook();
