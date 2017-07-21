@@ -2,19 +2,24 @@ import * as hapi from "hapi";
 import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
+import * as Models from "./models";
 
 export type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
 export interface IHapiPayPalOptions {
+    models?: string[];
     sdk: any;
     routes: [Partial<IPayPalRouteConfiguration>];
-    webhook: paypal.notification.webhook.Webhook;
+    webhook?: paypal.notification.webhook.Webhook;
 }
 
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: hapi.RouteHandler | IPayPalRouteHandler;
+    config?: {
+        id?: string;
+    };
 }
 
 export type IPayPalRouteHandler = (
@@ -71,6 +76,7 @@ export class HapiPayPal {
 
             this.webhook = options.webhook;
 
+            // tslint:disable-next-line:max-line-length
             const webhookRoute = options.routes.filter((route) => route.config.id === "paypal_webhooks_listen")[0];
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
@@ -79,17 +85,27 @@ export class HapiPayPal {
             this.webhook.url += webhookRoute.path;
 
             this.enableWebhooks();
+
         }
 
-        next();
+        /*
+        if (options.models && options.models.length > 0) {
+            const addModel = server.plugins["hapi-mongo-models"].addModel;
+            options.models.map((model) => {
+                server.log(`Enabling Model: ${model}`);
+                addModel(model, (Models as any)[model]);
+            });
+        }
+        */
 
+        next();
     }
 
     private buildRoute(route: Partial<IPayPalRouteConfiguration>): hapi.RouteConfiguration {
         const handler = route.handler as hapi.RouteHandler;
         let nHandler: hapi.RouteHandler;
 
-        if (!route.config.id) {
+        if (!route.config || !route.config.id) {
             throw new Error("You must set route.config.id");
         }
 
