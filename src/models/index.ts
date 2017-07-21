@@ -1,2 +1,3 @@
-export * from "./webhook";
-export * from "./payment";
+export { default as PaypalWebhook } from "./webhook";
+export { default as PaypalPayment } from "./payment";
+// export let test = "ok";

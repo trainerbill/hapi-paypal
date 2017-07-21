@@ -4,7 +4,6 @@ export declare type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 export interface IHapiPayPalOptions {
-    models?: string[];
     sdk: any;
     routes: [Partial<IPayPalRouteConfiguration>];
     webhook?: paypal.notification.webhook.Webhook;

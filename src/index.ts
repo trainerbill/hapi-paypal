@@ -2,14 +2,12 @@ import * as hapi from "hapi";
 import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
-import * as Models from "./models";
 
 export type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
 export interface IHapiPayPalOptions {
-    models?: string[];
     sdk: any;
     routes: [Partial<IPayPalRouteConfiguration>];
     webhook?: paypal.notification.webhook.Webhook;
@@ -61,6 +59,8 @@ export class HapiPayPal {
             mode: "sandbox",
         });
 
+        server.expose("paypal", paypal);
+
         options.routes.forEach((route) =>  server.route(this.buildRoute(route)));
 
         if (options.webhook) {
@@ -87,16 +87,6 @@ export class HapiPayPal {
             this.enableWebhooks();
 
         }
-
-        /*
-        if (options.models && options.models.length > 0) {
-            const addModel = server.plugins["hapi-mongo-models"].addModel;
-            options.models.map((model) => {
-                server.log(`Enabling Model: ${model}`);
-                addModel(model, (Models as any)[model]);
-            });
-        }
-        */
 
         next();
     }
