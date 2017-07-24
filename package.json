@@ -22,13 +22,14 @@
     "clean": "rimraf lib",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
     "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
-    "test": "npm run build && mocha --compilers ts:ts-node/register --recursive 'test/**/*-spec.ts'",
+    "test": "mocha --compilers ts:ts-node/register --recursive 'test/**/*-spec.ts'",
     "coverage": "nyc --include='src/**/*.ts' --reporter=text --reporter=html --reporter=lcov mocha --compilers ts:ts-node/register --recursive 'test/**/*.test.ts'",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch",
     "release": "npm run build && npm version",
     "release:quick": "npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch",
-    "postversion": "npm publish"
+    "postversion": "npm publish",
+    "reinstall": "rimraf node_modules && rimraf lib && npm install"
   },
   "dependencies": {
     "joi": "^10.6.0",
@@ -44,6 +45,7 @@
     "@types/mocha": "^2.0.0",
     "@types/mongoose": "^4.7.19",
     "@types/node": "^7.0.0",
+    "@types/paypal-rest-sdk": "^1.7.0",
     "chai": "^3.0.0",
     "coveralls": "^2.0.0",
     "hapi": "^16.4.3",
