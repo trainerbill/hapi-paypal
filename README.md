@@ -1,6 +1,5 @@
-[![dependencies](https://david-dm.org/trainerbill/hapi-paypal.svg)](https://david-dm.org/trainerbill/hapi-paypal.svg)
-[![devDependencies](https://david-dm.org/trainerbill/hapi-paypal.svg)](https://david-dm.org/trainerbill/hapi-paypal.svg)
-
+[![Dependency Status](https://david-dm.org/trainerbill/paypal-hapi.svg)](https://david-dm.org/trainerbill/paypal-hapi)
+[![devDependency Status](https://david-dm.org/trainerbill/paypal-hapi/dev-status.svg)](https://david-dm.org/trainerbill/paypal-hapi#info=devDependencies)
 # hapi-paypal
 Hapi Plugin for PayPal REST API's
 
