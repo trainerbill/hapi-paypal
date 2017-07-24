@@ -25,8 +25,8 @@
     "test": "nyc --reporter=lcov --require ts-node/register tape test/**/*-spec.ts | tap-spec; nyc report ---reporter=text",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch",
-    "release": "npm run build && npm version",
-    "release:quick": "npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch",
+    "release": "npm test && npm run build && npm version",
+    "release:quick": "npm test && npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch",
     "postversion": "npm publish",
     "reinstall": "rimraf node_modules package-lock.json && npm install"
   },
