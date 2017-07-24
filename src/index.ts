@@ -41,7 +41,7 @@ export class HapiPayPal {
 
     // tslint:disable-next-line:max-line-length
     public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
-
+        const promises = [];
         const sdkSchema = Joi.object().keys({
             client_id: Joi.string().min(10).required(),
             client_secret: Joi.string().min(10).required(),
@@ -53,11 +53,7 @@ export class HapiPayPal {
             throw sdkValidate.error;
         }
 
-        paypal.configure({
-            client_id: options.sdk.client_id,
-            client_secret: options.sdk.client_secret,
-            mode: "sandbox",
-        });
+        paypal.configure(options.sdk);
 
         server.expose("paypal", paypal);
 
@@ -74,21 +70,20 @@ export class HapiPayPal {
                 throw validate.error;
             }
 
-            this.webhook = options.webhook;
-
             // tslint:disable-next-line:max-line-length
             const webhookRoute = options.routes.filter((route) => route.config.id === "paypal_webhooks_listen")[0];
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
 
-            this.webhook.url += webhookRoute.path;
-
-            this.enableWebhooks();
+            const wopts = { ...options.webhook };
+            wopts.url += webhookRoute.path;
+            promises.push(this.enableWebhooks(wopts));
 
         }
-
-        next();
+        return Promise.all(promises).then(() => {
+            next();
+        });
     }
 
     private buildRoute(route: Partial<IPayPalRouteConfiguration>): hapi.RouteConfiguration {
@@ -167,15 +162,12 @@ export class HapiPayPal {
         return json;
     }
 
-    private async enableWebhooks() {
+    private async enableWebhooks(webhook: paypal.notification.webhook.Webhook) {
         try {
             this.webhookEvents = await this.getWebhookEventTypes();
             const accountWebHooks = await this.getAccountWebhooks();
-            this.webhook = accountWebHooks.filter((hook) => hook.url === this.webhook.url)[0] || this.webhook;
-            if (!this.webhook.id) {
-                this.webhook = await this.createWebhook();
-            }
-            this.webhook = await this.replaceWebhook();
+            this.webhook = accountWebHooks.filter((hook) => hook.url === webhook.url)[0];
+            this.webhook = !this.webhook ? await this.createWebhook(webhook) : await this.replaceWebhook(webhook);
         } catch (err) {
             throw err;
         }
@@ -205,31 +197,29 @@ export class HapiPayPal {
         });
     }
 
-    private createWebhook(): Promise<paypal.notification.webhook.Webhook> {
-        const webhookConfig = this.webhook;
+    private createWebhook(webhook: paypal.notification.webhook.Webhook): Promise<paypal.notification.webhook.Webhook> {
         return new Promise((resolve, reject) => {
-            paypal.notification.webhook.create(webhookConfig, (error, webhook) => {
+            paypal.notification.webhook.create(webhook, (error, response) => {
                 if (error) {
                     reject(error);
                 } else {
-                    resolve(webhook);
+                    resolve(response);
                 }
             });
         });
     }
 
-    private replaceWebhook(): Promise<paypal.notification.webhook.Webhook> {
-        const webhookConfig = this.webhook;
+    private replaceWebhook(webhook: paypal.notification.webhook.Webhook): Promise<paypal.notification.webhook.Webhook> {
         return new Promise((resolve, reject) => {
             paypal.notification.webhook.replace(this.webhook.id, [{
                 op: "replace",
                 path: "/event_types",
-                value: webhookConfig.event_types,
-            }], (error, webhook) => {
+                value: webhook.event_types,
+            }], (error, response) => {
                 if (error && error.response.name !== "WEBHOOK_PATCH_REQUEST_NO_CHANGE") {
                     reject(error);
                 } else {
-                    resolve(webhook);
+                    resolve(response);
                 }
             });
         });

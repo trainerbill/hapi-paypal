@@ -23,9 +23,9 @@ export declare class HapiPayPal {
     register: hapi.PluginFunction<any>;
     private buildRoute(route);
     private getMockData(type);
-    private enableWebhooks();
+    private enableWebhooks(webhook);
     private getWebhookEventTypes();
     private getAccountWebhooks();
-    private createWebhook();
-    private replaceWebhook();
+    private createWebhook(webhook);
+    private replaceWebhook(webhook);
 }
