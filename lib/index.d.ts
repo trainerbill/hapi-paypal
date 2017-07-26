@@ -5,24 +5,32 @@ export declare type Partial<T> = {
 };
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes: [Partial<IPayPalRouteConfiguration>];
+    routes?: [Partial<IPayPalRouteConfiguration>];
     webhook?: paypal.notification.webhook.Webhook;
 }
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
-    handler?: hapi.RouteHandler | IPayPalRouteHandler;
-    config?: {
-        id?: string;
+    handler?: IPayPalRouteHandler;
+    config: {
+        id: string;
     };
 }
 export declare type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, error: any, response: any) => void;
+export interface InternalRouteConfiguration extends hapi.RouteConfiguration {
+    handler?: InternalRouteHandler;
+    config: {
+        id: string;
+    };
+}
+export declare type InternalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, ohandler: IPayPalRouteHandler) => void;
 export declare class HapiPayPal {
     private webhookEvents;
     private webhook;
     private routes;
+    private server;
     constructor();
+    getRoutes(): Map<string, InternalRouteConfiguration>;
     register: hapi.PluginFunction<any>;
-    private buildRoute(route);
-    private getMockData(type);
+    private buildRoutes(routes);
     private enableWebhooks(webhook);
     private getWebhookEventTypes();
     private getAccountWebhooks();

@@ -57,6 +57,7 @@ tape("export", (t) => {
     t.equal(typeof index.HapiPayPal, "function");
 });
 
+/*
 tape("server register webhooks", async (t) => {
     try {
         const sandbox = sinon.sandbox.create();
@@ -93,3 +94,4 @@ tape("server register webhook replace", async (t) => {
         throw err;
     }
 });
+*/

@@ -7,11 +7,19 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch File",
+            "name": "Launch Test File",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
             "runtimeArgs": [ 
                 "./node_modules/.bin/tape",
                 "${file}" ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Server",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
+            "runtimeArgs": [ 
+                "${workspaceRoot}/test/server.ts" ]
         }
     ]
 }

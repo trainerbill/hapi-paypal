@@ -9,14 +9,14 @@ export type Partial<T> = {
 
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes: [Partial<IPayPalRouteConfiguration>];
+    routes?: [Partial<IPayPalRouteConfiguration>];
     webhook?: paypal.notification.webhook.Webhook;
 }
 
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
-    handler?: hapi.RouteHandler | IPayPalRouteHandler;
-    config?: {
-        id?: string;
+    handler?: IPayPalRouteHandler;
+    config: {
+        id: string;
     };
 }
 
@@ -24,23 +24,71 @@ export type IPayPalRouteHandler = (
     request: hapi.Request,
     reply: hapi.ReplyNoContinue,
     error: any,
-    response: any) => void;
+    response: any,
+) => void;
+
+export interface InternalRouteConfiguration extends hapi.RouteConfiguration {
+    handler?: InternalRouteHandler;
+    config: {
+        id: string;
+    };
+}
+
+export type InternalRouteHandler = (
+    request: hapi.Request,
+    reply: hapi.ReplyNoContinue,
+    ohandler: IPayPalRouteHandler,
+) => void;
 
 export class HapiPayPal {
 
     private webhookEvents: paypal.notification.NotificationEventType[];
     private webhook: paypal.notification.webhook.Webhook;
-    private routes: hapi.RouteConfiguration[] = [];
+    private routes: Map<string, InternalRouteConfiguration> = new Map();
+    private server: hapi.Server;
 
     constructor() {
         this.register.attributes = {
             pkg,
         };
 
+        this.routes.set("paypal_payment_create", {
+            config: {
+                id: "paypal_payment_create",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.payment.create(request.payload, (error, response) => {
+                    if (ohandler) {
+                        ohandler.apply(this, [request, reply, error, response]);
+                    }
+                });
+                return;
+            },
+            method: "POST",
+            path: "/paypal/payment/create",
+        });
+
+        this.routes.set("paypal_webhooks_listen", {
+            config: {
+                id: "paypal_webhooks_listen",
+            },
+            handler: (request, reply, ohandler) => {
+                ohandler(request, reply, null, null);
+                return;
+            },
+            method: "POST",
+            path: "/paypal/webhooks/listen",
+        });
+
+    }
+
+    public getRoutes() {
+        return this.routes;
     }
 
     // tslint:disable-next-line:max-line-length
     public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
+        this.server = server;
         const promises = [];
         const sdkSchema = Joi.object().keys({
             client_id: Joi.string().min(10).required(),
@@ -56,8 +104,9 @@ export class HapiPayPal {
         paypal.configure(options.sdk);
 
         server.expose("paypal", paypal);
-
-        options.routes.forEach((route) =>  server.route(this.buildRoute(route)));
+        if (options.routes && options.routes.length > 0) {
+            this.buildRoutes(options.routes);
+        }
 
         if (options.webhook) {
             const webhooksSchema = Joi.object().keys({
@@ -86,6 +135,21 @@ export class HapiPayPal {
         });
     }
 
+    private buildRoutes(routes: [Partial<IPayPalRouteConfiguration>]) {
+        routes.forEach((route) =>  {
+            const dRoute = this.routes.get(route.config.id);
+            const nRoute: hapi.RouteConfiguration = {
+                handler: (request, reply) => {
+                    dRoute.handler(request, reply, route.handler);
+                },
+                method: route.method || dRoute.method,
+                path: route.path || dRoute.path,
+            };
+            this.server.route(nRoute);
+        });
+    }
+
+    /*
     private buildRoute(route: Partial<IPayPalRouteConfiguration>): hapi.RouteConfiguration {
         const handler = route.handler as hapi.RouteHandler;
         let nHandler: hapi.RouteHandler;
@@ -122,7 +186,7 @@ export class HapiPayPal {
                 route.handler = nHandler;
                 break;
         }
-        this.routes.push(route as hapi.RouteConfiguration);
+        // this.routes.push(route as hapi.RouteConfiguration);
         return route as hapi.RouteConfiguration;
     }
 
@@ -161,6 +225,7 @@ export class HapiPayPal {
 
         return json;
     }
+    */
 
     private async enableWebhooks(webhook: paypal.notification.webhook.Webhook) {
         try {
