@@ -35,3 +35,30 @@ tape("create webhook", async (t) => {
     }
     sandbox.restore();
  });
+
+tape("replace webhook", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const eventsStub = sandbox.stub(paypal.notification.webhookEventType, "list").yields(null, { event_types: [] });
+    // tslint:disable-next-line:max-line-length
+    const webhookStub = sandbox.stub(paypal.notification.webhook, "list").yields(null, { webhooks: [{ id: "testid", url: "https://www.youneedtochangethis.com/paypal/webhooks/listen" }] });
+    const replaceWebhookStub = sandbox.stub(paypal.notification.webhook, "replace").yields(null, { id: "webhookid" });
+    const server = new hapi.Server();
+    server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
+    const hapiPaypal = new index.HapiPayPal();
+    try {
+        await server.register({
+            options: nconfig,
+            register: hapiPaypal.register,
+        });
+        const replaceRequest = [{
+            op: "replace",
+            path: "/event_types",
+            value: config.webhook.event_types,
+        }];
+        // tslint:disable-next-line:max-line-length
+        t.equal(replaceWebhookStub.calledWith("testid", replaceRequest), true, "should call replace webhook api with config");
+    } catch (err) {
+        t.fail("should not fail");
+    }
+    sandbox.restore();
+ });
