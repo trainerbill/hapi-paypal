@@ -57,7 +57,7 @@
     "good-squeeze": "^5.0.2",
     "hapi": "^16.4.3",
     "mongoose": "^4.11.4",
-    "nyc": "^10.0.0",
+    "nyc": "^11.1.0",
     "rimraf": "^2.0.0",
     "sinon": "^2.4.1",
     "superagent": "^3.5.2",
@@ -69,25 +69,5 @@
   },
   "engines": {
     "node": ">=4.0.0"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.ts"
-    ],
-    "exclude": [
-      "lib",
-      "src/**/*.d.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "lcov"
-    ],
-    "all": true
-  },
-  "false": {}
+  }
 }
