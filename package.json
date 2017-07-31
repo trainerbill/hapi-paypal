@@ -1,6 +1,6 @@
 {
   "name": "hapi-paypal",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "A hapi plugin to interface with PayPal Rest API's and webhooks.",
   "license": "MIT",
   "repository": "https://github.com/trainerbill/hapi-paypal",
@@ -86,7 +86,9 @@
     "require": [
       "ts-node/register"
     ],
-    "reporter": ["lcov"],
+    "reporter": [
+      "lcov"
+    ],
     "all": true
   }
 }
