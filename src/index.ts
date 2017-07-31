@@ -73,7 +73,8 @@ export class HapiPayPal {
                 id: "paypal_webhooks_listen",
             },
             handler: (request, reply, ohandler) => {
-                paypal.notification.webhookEvent.getAndVerify(request.payload, (error, response) => {
+                // tslint:disable-next-line:max-line-length
+                paypal.notification.webhookEvent.verify(request.headers, request.payload, request.payload.id, (error, response) => {
                     if (error) {
                         this.server.log("error", `PayPal Webhook not verified: ${JSON.stringify(request.payload)}`);
                     }

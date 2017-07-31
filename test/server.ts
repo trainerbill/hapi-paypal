@@ -37,6 +37,9 @@ export const config: index.IHapiPayPalOptions = {
             {
                 name: "INVOICING.INVOICE.CANCELLED",
             },
+            {
+                name: "PAYMENT.SALE.COMPLETED",
+            },
         ],
         url: process.env.PAYPAL_WEBHOOK_HOSTNAME || "https://www.youneedtochangethis.com",
     },
