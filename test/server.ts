@@ -29,6 +29,17 @@ export const config: index.IHapiPayPalOptions = {
         client_secret: process.env.PAYPAL_CLIENT_SECRET,
         mode: "sandbox",
     },
+    webhook: {
+        event_types: [
+            {
+                name: "INVOICING.INVOICE.PAID",
+            },
+            {
+                name: "INVOICING.INVOICE.CANCELLED",
+            },
+        ],
+        url: process.env.PAYPAL_WEBHOOK_HOSTNAME || "https://www.youneedtochangethis.com",
+    },
 };
 
 export const server = new hapi.Server();
@@ -60,14 +71,14 @@ async function start() {
         register: good.register,
     }]);
 
-    if (!module.parent) {
-        server.start((error) => {
-            if (error) {
-                throw error;
-            }
-            server.log("info", `Server running at: ${server.info.uri}`);
-        });
-    }
+    server.start((error) => {
+        if (error) {
+            throw error;
+        }
+        server.log("info", `Server running at: ${server.info.uri}`);
+    });
 }
 
-start();
+if (!module.parent) {
+    start();
+}

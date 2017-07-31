@@ -4,57 +4,52 @@ import * as paypal from "paypal-rest-sdk";
 import * as sinon from "sinon";
 import * as index from "../src";
 
-const defaultOptions: index.IHapiPayPalOptions = {
-    routes: [
-        {
-            config: {
-                id: "paypal_payment_create",
-            },
-            handler: (request, reply, error, response) => {
-                reply(response);
-            },
-        },
-        {
-            config: {
-                id: "paypal_webhooks_listen",
-            },
-            handler: (request, reply, error, response) => {
-                return;
-            },
-        },
-    ],
-    sdk: {
-        client_id: "asdfasdfasfdasdfasdfsf",
-        client_secret: "asdfasdfasfdasdfasdfsf",
-        mode: "sandbox",
-    },
-    webhook: {
-        event_types: [
-            {
-                name: "INVOICING.INVOICE.PAID",
-            },
-            {
-                name: "INVOICING.INVOICE.CANCELLED",
-            },
-        ],
-        url: "https://test.com/test",
-    },
-};
+const hapiPaypal = new index.HapiPayPal();
 
-async function createHapiServer(myoptions?: index.IHapiPayPalOptions) {
-    const hapiPaypal = new index.HapiPayPal();
+tape("should register plugin", async (t) => {
     const server = new hapi.Server();
     server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
+    const sandbox = sinon.sandbox.create();
+    const configSpy = sandbox.spy(paypal, "configure");
+    const exposeSpy = sandbox.spy(server, "expose");
+    const configuration = {
+        client_id: "clientidasdfasdfasdfasdf",
+        client_secret: "clientsecretasdfasdfasfsadf",
+        mode: "sandbox",
+    };
     await server.register({
-        options: { ...defaultOptions, ...myoptions },
+        options: {
+            sdk: configuration,
+         },
         register: hapiPaypal.register,
     });
-    return server;
-}
+    t.equal(configSpy.calledWith(configuration), true, "should call paypal configuration");
+    t.equal(server.plugins["hapi-paypal"].paypal, paypal, "should expose paypal library");
+    sandbox.restore();
+});
 
-tape("export", (t) => {
-    t.plan(1);
-    t.equal(typeof index.HapiPayPal, "function");
+tape("register should throw error", async (t) => {
+    const server = new hapi.Server();
+    server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
+    const sandbox = sinon.sandbox.create();
+    const configSpy = sandbox.spy(paypal, "configure");
+    const configuration = {
+        client_id: "clientid",
+        client_secret: "client",
+        mode: "sandbox",
+    };
+    try {
+        await server.register({
+            options: {
+                sdk: configuration,
+            },
+            register: hapiPaypal.register,
+        });
+        t.fail("throws error");
+    } catch (err) {
+        t.pass("throws error");
+    }
+    sandbox.restore();
 });
 
 /*

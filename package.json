@@ -19,15 +19,15 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "clean": "rimraf lib",
+    "clean": "rimraf lib coverage",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
     "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
     "test": "nyc --reporter=lcov --require ts-node/register tape test/**/*-spec.ts | tap-spec; nyc report ---reporter=text",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch",
     "release": "npm test && npm run build && npm version",
-    "release:quick": "npm test && npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch",
-    "postversion": "npm publish",
+    "release:quick": "npm test && npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch && git push --tags",
+    "postversion": "npm publish && git push --tags",
     "reinstall": "rimraf node_modules package-lock.json && npm install",
     "start": "ts-node ./test/server.ts"
   },
@@ -76,8 +76,16 @@
     "include": [
       "src/**/*.ts"
     ],
+    "exclude": [
+      "lib"
+    ],
     "extension": [
       ".ts"
-    ]
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [],
+    "all": true
   }
 }

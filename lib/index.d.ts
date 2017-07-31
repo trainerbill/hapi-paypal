@@ -28,7 +28,6 @@ export declare class HapiPayPal {
     private routes;
     private server;
     constructor();
-    getRoutes(): Map<string, InternalRouteConfiguration>;
     register: hapi.PluginFunction<any>;
     private buildRoutes(routes);
     private enableWebhooks(webhook);

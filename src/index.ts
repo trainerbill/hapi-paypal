@@ -82,10 +82,6 @@ export class HapiPayPal {
 
     }
 
-    public getRoutes() {
-        return this.routes;
-    }
-
     // tslint:disable-next-line:max-line-length
     public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
         this.server = server;
@@ -119,18 +115,18 @@ export class HapiPayPal {
                 throw validate.error;
             }
 
-            // tslint:disable-next-line:max-line-length
-            const webhookRoute = options.routes.filter((route) => route.config.id === "paypal_webhooks_listen")[0];
+            const webhookRoute = server.lookup("paypal_webhooks_listen");
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
 
             const wopts = { ...options.webhook };
             wopts.url += webhookRoute.path;
-            promises.push(this.enableWebhooks(wopts));
+            const test = this.enableWebhooks(wopts);
+            promises.push(test);
 
         }
-        return Promise.all(promises).then(() => {
+        Promise.all(promises).then(() => {
             next();
         });
     }
@@ -145,7 +141,7 @@ export class HapiPayPal {
                 method: route.method || dRoute.method,
                 path: route.path || dRoute.path,
             };
-            this.server.route(nRoute);
+            this.server.route({ ...route, ...nRoute });
         });
     }
 
