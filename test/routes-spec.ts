@@ -14,7 +14,7 @@ const nconfig = {
     },
 };
 
-const payload = { payload: "test" };
+const payload = { id: "test", payload: "test" };
 
 const server = new hapi.Server();
 server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
@@ -36,13 +36,4 @@ tape("paypal_payment_create route", async (t) => {
     });
     t.equal(res.payload, JSON.stringify(payload));
     sandbox.restore();
- });
-
-tape("paypal_webhook_listen route", async (t) => {
-    const res = await server.inject({
-        method: "POST",
-        payload,
-        url: "/paypal/webhooks/listen",
-    });
-    t.equal(res.payload, "GOT IT!");
  });

@@ -62,3 +62,31 @@ tape("replace webhook", async (t) => {
     }
     sandbox.restore();
  });
+
+tape("paypal_webhook_listen route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const eventsStub = sandbox.stub(paypal.notification.webhookEventType, "list").yields(null, { event_types: [] });
+    const verifyStub = sandbox.stub(paypal.notification.webhookEvent, "verify").yields(null, {verification: "success"});
+    // tslint:disable-next-line:max-line-length
+    const webhookStub = sandbox.stub(paypal.notification.webhook, "list").yields(null, { webhooks: [{ id: "testid", url: "https://www.youneedtochangethis.com/paypal/webhooks/listen" }] });
+    const replaceWebhookStub = sandbox.stub(paypal.notification.webhook, "replace").yields(null, { id: "webhookid" });
+    const server = new hapi.Server();
+    server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
+    const hapiPaypal = new index.HapiPayPal();
+    try {
+        await server.register({
+            options: nconfig,
+            register: hapiPaypal.register,
+        });
+        const res = await server.inject({
+            method: "POST",
+            payload: { id: "testid" },
+            url: "/paypal/webhooks/listen",
+        });
+        // tslint:disable-next-line:max-line-length
+        t.equal(res.payload, "GOT IT!", "Should respond with got it.");
+    } catch (err) {
+        t.fail("should not fail");
+    }
+    sandbox.restore();
+ });
