@@ -32,9 +32,9 @@
     "start": "ts-node ./test/server.ts"
   },
   "dependencies": {
+    "@types/paypal-rest-sdk": "^1.7.0",
     "joi": "^10.6.0",
-    "paypal-rest-sdk": "^1.7.1",
-    "@types/paypal-rest-sdk": "^1.7.0"
+    "paypal-rest-sdk": "^1.7.1"
   },
   "peerDependencies": {
     "mongoose": "^4.11.3"

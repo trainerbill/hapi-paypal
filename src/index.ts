@@ -104,7 +104,7 @@ export class HapiPayPal {
 
         paypal.configure(options.sdk);
 
-        server.expose("paypal", paypal);
+        this.server.expose("paypal", paypal);
         if (options.routes && options.routes.length > 0) {
             this.buildRoutes(options.routes);
         }
@@ -120,7 +120,7 @@ export class HapiPayPal {
                 throw validate.error;
             }
 
-            const webhookRoute = server.lookup("paypal_webhooks_listen");
+            const webhookRoute = this.server.lookup("paypal_webhooks_listen");
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
