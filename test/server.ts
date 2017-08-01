@@ -23,6 +23,14 @@ export const config: index.IHapiPayPalOptions = {
                 reply("GOT IT!");
             },
         },
+        {
+            config: {
+                id: "paypal_invoice_search",
+            },
+            handler: (request, reply, error, response) => {
+                reply(error || response);
+            },
+        },
     ],
     sdk: {
         client_id: process.env.PAYPAL_CLIENT_ID,

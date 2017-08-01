@@ -37,3 +37,15 @@ tape("paypal_payment_create route", async (t) => {
     t.equal(res.payload, JSON.stringify(payload));
     sandbox.restore();
  });
+
+tape("paypal_invoice_search route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "search").yields(null, payload);
+    const res = await server.inject({
+        method: "POST",
+        payload,
+        url: "/paypal/invoice/search",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });

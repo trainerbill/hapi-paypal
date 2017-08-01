@@ -1,6 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose = require("mongoose");
+import * as mongoose from "mongoose";
+
 const Schema = {
     create_time: String,
     event_type: String,
@@ -10,9 +9,10 @@ const Schema = {
     resource_type: String,
     summary: String,
 };
+
 const options = {
-    timestamps: true,
+  timestamps: true,
 };
+
 const WebhookSchema = new mongoose.Schema(Schema, options);
-exports.default = mongoose.model("Webhook", WebhookSchema);
-//# sourceMappingURL=webhook.js.map
+export default mongoose.model("PayPalWebhook", WebhookSchema);
