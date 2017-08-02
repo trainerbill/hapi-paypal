@@ -1,3 +1,4 @@
+import * as boom from "boom";
 import * as hapi from "hapi";
 import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
@@ -61,7 +62,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
                 return;
@@ -83,7 +84,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
             },
@@ -100,7 +101,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
                 return;
@@ -118,7 +119,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
                 return;
@@ -136,7 +137,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
                 return;
@@ -154,7 +155,7 @@ export class HapiPayPal {
                     if (ohandler) {
                         ohandler.apply(this, [request, reply, error, response]);
                     } else {
-                        reply(error || response);
+                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
                     }
                 });
                 return;
