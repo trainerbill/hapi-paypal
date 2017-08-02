@@ -7,7 +7,12 @@ const Schema = {
     cc_info: Array,
     custom: Object,
     discount: Object,
-    id: String,
+    id: {
+        dropDups: true,
+        required: true,
+        type: String,
+        unique: true,
+    },
     invoice_date: Date,
     items: Array,
     merchant_info: Object,
