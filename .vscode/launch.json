@@ -29,6 +29,8 @@
             "name": "Launch Server",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
             "runtimeArgs": [ 
+                "-r",
+                "dotenv/config",
                 "${workspaceRoot}/test/server.ts" ]
         }
     ]
