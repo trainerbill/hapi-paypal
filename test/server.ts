@@ -11,9 +11,6 @@ export const config: index.IHapiPayPalOptions = {
             config: {
                 id: "paypal_payment_create",
             },
-            handler: (request, reply, error, response) => {
-                reply(response);
-            },
         },
         {
             config: {
@@ -27,8 +24,20 @@ export const config: index.IHapiPayPalOptions = {
             config: {
                 id: "paypal_invoice_search",
             },
-            handler: (request, reply, error, response) => {
-                reply(error || response);
+        },
+        {
+            config: {
+                id: "paypal_invoice_create",
+            },
+        },
+        {
+            config: {
+                id: "paypal_invoice_send",
+            },
+        },
+        {
+            config: {
+                id: "paypal_invoice_get",
             },
         },
     ],
