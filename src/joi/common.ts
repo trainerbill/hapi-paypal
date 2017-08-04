@@ -7,7 +7,7 @@ const abbrs = us.STATES.map((state: any) => {
 
 export const paypalAddressSchema = joi.object().keys({
     city: joi.string().required(),
-    country_code: joi.string().empty("").max(2).required(),
+    country_code: joi.string().empty("").max(2).default("US"),
     line1: joi.string().empty("").required(),
     line2: joi.string().empty("").optional(),
     phone: joi.string().empty("").optional(),
@@ -16,12 +16,12 @@ export const paypalAddressSchema = joi.object().keys({
 });
 
 export const paypalPhoneSchema = joi.object().keys({
-    country_code: joi.string().regex(/^[0-9]{1,3}?$/),
+    country_code: joi.string().regex(/^[0-9]{1,3}?$/).default("1"),
     national_number: joi.string().regex(/^[0-9]{1,14}?$/),
 });
 
 export const paypalCurrencySchema = joi.object().keys({
-    currency: joi.string().max(3).required(),
+    currency: joi.string().max(3).default("USD"),
     value: joi.string().required(),
 });
 

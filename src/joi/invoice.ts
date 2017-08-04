@@ -5,15 +5,15 @@ export const paypalInvoiceItemsSchema = joi.object().keys({
     date: joi.date().optional(),
     description: joi.string().max(1000).optional(),
     discount: common.paypalCostSchema.optional(),
-    name: joi.string().max(200).required(),
+    name: joi.string().max(200).default("Item Name"),
     quantity: joi.number().greater(-10000).less(10000).required(),
     tax: common.paypalTaxSchema.optional(),
-    unit_of_measure: joi.string().allow(["QUANTITY", "HOURS", "AMOUNT"]),
+    unit_of_measure: joi.string().allow(["QUANTITY", "HOURS", "AMOUNT"]).optional(),
     unit_price: common.paypalCurrencySchema.required(),
 });
 
 export const paypalInvoiceTermSchema = joi.object().min(1).keys({
-    due_date: joi.date(),
+    due_date: joi.date().optional(),
     term_type: joi.string().allow([
         "DUE_ON_RECEIPT",
         "DUE_ON_DATE_SPECIFIED",
@@ -23,7 +23,7 @@ export const paypalInvoiceTermSchema = joi.object().min(1).keys({
         "NET_45",
         "NET_60",
         "NET_90",
-        "NO_DUE_DATE"]),
+        "NO_DUE_DATE"]).optional(),
 });
 
 export const paypalInvoiceSchema = joi.object().keys({
@@ -61,12 +61,12 @@ export const paypalInvoiceSchema = joi.object().keys({
     merchant_memo: joi.string().max(500).optional(),
     minimum_amount_due: common.paypalCurrencySchema.optional(),
     note: joi.string().max(4000).optional(),
-    number: joi.string().required(),
+    number: joi.string().optional(),
     payment_term: paypalInvoiceTermSchema.required(),
     reference: joi.string().max(60).optional(),
     shipping_info: joi.object().keys({
         address: common.paypalAddressSchema.optional(),
-        business_name: joi.string().max(100).required(),
+        business_name: joi.string().max(100).optional(),
         first_name: joi.string().max(256).optional(),
         last_name: joi.string().max(256).optional(),
     }).optional(),
