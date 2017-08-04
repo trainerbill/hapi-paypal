@@ -7,12 +7,12 @@ const abbrs = us.STATES.map((state: any) => {
 
 export const paypalAddressSchema = joi.object().keys({
     city: joi.string().required(),
-    country_code: joi.string().max(2).required(),
-    line1: joi.string().required(),
+    country_code: joi.string().empty("").max(2).required(),
+    line1: joi.string().empty("").required(),
     line2: joi.string().empty("").optional(),
-    phone: joi.string().optional(),
-    postal_code: joi.string().required(),
-    state: joi.string().allow(abbrs).required(),
+    phone: joi.string().empty("").optional(),
+    postal_code: joi.string().empty("").required(),
+    state: joi.string().empty("").allow(abbrs).required(),
 });
 
 export const paypalPhoneSchema = joi.object().keys({
