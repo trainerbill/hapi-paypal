@@ -1,5 +1,6 @@
 import * as hapi from "hapi";
 import * as paypal from "paypal-rest-sdk";
+export * from "./joi";
 export declare type Partial<T> = {
     [P in keyof T]?: T[P];
 };

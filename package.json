@@ -34,7 +34,8 @@
   "dependencies": {
     "@types/paypal-rest-sdk": "^1.7.0",
     "joi": "^10.6.0",
-    "paypal-rest-sdk": "^1.7.1"
+    "paypal-rest-sdk": "^1.7.1",
+    "us": "^2.0.0"
   },
   "peerDependencies": {
     "mongoose": "^4.11.3"

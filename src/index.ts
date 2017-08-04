@@ -3,6 +3,7 @@ import * as hapi from "hapi";
 import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
+export * from "./joi";
 
 export type Partial<T> = {
     [P in keyof T]?: T[P];
