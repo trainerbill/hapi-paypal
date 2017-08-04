@@ -59,11 +59,7 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.payment.create(request.payload, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
                 return;
             },
@@ -81,11 +77,7 @@ export class HapiPayPal {
                     if (error || response.verification_status !== "SUCCESS") {
                         this.server.log("error", `PayPal Webhook not verified: ${JSON.stringify(request.payload)}`);
                     }
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
             },
             method: "POST",
@@ -98,13 +90,8 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.invoice.search(request.payload, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
-                return;
             },
             method: "POST",
             path: "/paypal/invoice/search",
@@ -116,13 +103,8 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.invoice.create(request.payload, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
-                return;
             },
             method: "POST",
             path: "/paypal/invoice",
@@ -134,11 +116,7 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.invoice.send(request.params.invoiceid, request.payload, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
                 return;
             },
@@ -152,11 +130,7 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.invoice.get(request.params.invoiceid, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    } else {
-                        return error ? reply(boom.badRequest(error.response.message)) : reply(response);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
                 return;
             },
@@ -213,6 +187,26 @@ export class HapiPayPal {
         Promise.all(promises).then(() => {
             next();
         });
+    }
+
+    private defaultResponseHandler(
+        ohandler: IPayPalRouteHandler,
+        request: hapi.Request,
+        reply: hapi.ReplyNoContinue,
+        error: paypal.SDKError,
+        response: any,
+    ) {
+        if (ohandler) {
+            ohandler(request, reply, error, response);
+        } else {
+            if (error) {
+                const bError = boom.badRequest(error.response.message);
+                (bError.output.payload as any).details = error.response.details;
+                bError.reformat();
+                return reply(bError);
+            }
+            return reply(response);
+        }
     }
 
     private buildRoutes(routes: [Partial<IPayPalRouteConfiguration>]) {
