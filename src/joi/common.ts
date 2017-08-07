@@ -43,5 +43,5 @@ export const paypalShippingCostSchema = joi.object().keys({
 
 export const paypalCustomAmountSchema = joi.object().keys({
     amount: paypalCurrencySchema.required(),
-    label: joi.string().max(50).trim().empty("").required(),
+    label: joi.string().trim().empty("").max(50).required(),
 });
