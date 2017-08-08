@@ -153,6 +153,19 @@ export class HapiPayPal {
             path: "/paypal/invoice/{invoiceid}/cancel",
         });
 
+        this.routes.set("paypal_invoice_remind", {
+            config: {
+                id: "paypal_invoice_remind",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.remind(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "POST",
+            path: "/paypal/invoice/{invoiceid}/remind",
+        });
+
     }
 
     // tslint:disable-next-line:max-line-length
