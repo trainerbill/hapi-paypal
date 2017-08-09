@@ -26,20 +26,20 @@ export const paypalInvoiceTermSchema = joi.object().min(1).keys({
         "NO_DUE_DATE"]).optional(),
 });
 
+export const paypalInvoiceBillingInfoSchema = joi.object().keys({
+    additional_info: joi.string().trim().empty("").max(40).optional(),
+    address: common.paypalAddressSchema.optional(),
+    business_name: joi.string().trim().empty("").max(100).optional(),
+    email: joi.string().trim().empty("").max(260).optional(),
+    first_name: joi.string().trim().empty("").max(30).optional(),
+    language: joi.string().trim().empty("").max(5).optional(),
+    last_name: joi.string().trim().empty("").max(30).optional(),
+    phone: common.paypalPhoneSchema.optional(),
+});
+
 export const paypalInvoiceSchema = joi.object().keys({
     allow_tip: joi.boolean().default(false),
-    billing_info: joi.array().min(1).items(
-        joi.object().keys({
-            additional_info: joi.string().trim().empty("").max(40).optional(),
-            address: common.paypalAddressSchema.optional(),
-            business_name: joi.string().trim().empty("").max(100).optional(),
-            email: joi.string().trim().empty("").max(260).optional(),
-            first_name: joi.string().trim().empty("").max(30).optional(),
-            language: joi.string().trim().empty("").max(5).optional(),
-            last_name: joi.string().trim().empty("").max(30).optional(),
-            phone: common.paypalPhoneSchema.optional(),
-        }).required(),
-    ).required(),
+    billing_info: joi.array().min(1).items(paypalInvoiceBillingInfoSchema).required(),
     cc_info: joi.array().items(
         joi.object().keys({
             email: joi.string().trim().empty("").required(),
