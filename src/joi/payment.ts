@@ -59,11 +59,11 @@ export const paypalTransactionSchema = joi.object().keys({
         merchant_id: joi.string().trim().empty("").optional(),
     }).optional(),
     payer: joi.object().keys({
-       payment_method: joi.string().allow("paypal").default("paypal"),
+       payment_method: joi.string().valid("paypal").default("paypal"),
     }).optional(),
     payment_options: joi.object().keys({
         // tslint:disable-next-line:max-line-length
-        allowed_payment_method: joi.string().trim().empty("").allow(["UNRESTRICTED", "INSTANT_FUNDING_SOURCE", "IMMEDIATE_PAY"]).required(),
+        allowed_payment_method: joi.string().trim().empty("").valid(["UNRESTRICTED", "INSTANT_FUNDING_SOURCE", "IMMEDIATE_PAY"]).required(),
     }).optional(),
     purchase_order: joi.string().trim().empty("").max(127).optional(),
     reference_id: joi.string().empty("").optional(),
@@ -72,10 +72,10 @@ export const paypalTransactionSchema = joi.object().keys({
 
 export const paypalPaymentSchema = joi.object().keys({
     experience_profile_id: joi.string().trim().empty("").optional(),
-    intent: joi.date().empty("").allow(["sale", "authorize", "order"]).required(),
+    intent: joi.date().empty("").valid(["sale", "authorize", "order"]).required(),
     note_to_payer: joi.string().trim().empty("").max(165).optional(),
     payer: joi.object().keys({
-       payment_method: joi.string().allow("paypal").default("paypal"),
+       payment_method: joi.string().valid("paypal").default("paypal"),
     }).required(),
     redirect_urls: joi.object().keys({
         cancel_url: joi.string().trim().empty("").max(2048).required(),

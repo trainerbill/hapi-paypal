@@ -12,7 +12,7 @@ export const paypalAddressSchema = joi.object().keys({
     line2: joi.string().trim().empty("").optional(),
     phone: joi.string().trim().empty("").optional(),
     postal_code: joi.string().trim().empty("").required(),
-    state: joi.string().trim().empty("").allow(abbrs).required(),
+    state: joi.string().trim().empty("").valid(abbrs).required(),
 });
 
 export const paypalPhoneSchema = joi.object().keys({
