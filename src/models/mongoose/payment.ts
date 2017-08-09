@@ -9,4 +9,4 @@ const options = {
 };
 
 const PaymentSchema = new mongoose.Schema(Schema, options);
-export default mongoose.model("Payment", PaymentSchema);
+export default mongoose.model("PayPalPayment", PaymentSchema);

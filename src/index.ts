@@ -1,7 +1,10 @@
+import * as boom from "boom";
 import * as hapi from "hapi";
 import * as Joi from "joi";
 import * as paypal from "paypal-rest-sdk";
 import * as pkg from "../package.json";
+import { paypalSdkSchema } from "./joi";
+export * from "./joi";
 
 export type Partial<T> = {
     [P in keyof T]?: T[P];
@@ -58,9 +61,7 @@ export class HapiPayPal {
             },
             handler: (request, reply, ohandler) => {
                 paypal.payment.create(request.payload, (error, response) => {
-                    if (ohandler) {
-                        ohandler.apply(this, [request, reply, error, response]);
-                    }
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
                 return;
             },
@@ -78,11 +79,91 @@ export class HapiPayPal {
                     if (error || response.verification_status !== "SUCCESS") {
                         this.server.log("error", `PayPal Webhook not verified: ${JSON.stringify(request.payload)}`);
                     }
-                    ohandler.apply(this, [request, reply, error, response]);
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
                 });
             },
             method: "POST",
             path: "/paypal/webhooks/listen",
+        });
+
+        this.routes.set("paypal_invoice_search", {
+            config: {
+                id: "paypal_invoice_search",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.search(request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "POST",
+            path: "/paypal/invoice/search",
+        });
+
+        this.routes.set("paypal_invoice_create", {
+            config: {
+                id: "paypal_invoice_create",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.create(request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "POST",
+            path: "/paypal/invoice",
+        });
+
+        this.routes.set("paypal_invoice_send", {
+            config: {
+                id: "paypal_invoice_send",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.send(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+                return;
+            },
+            method: "POST",
+            path: "/paypal/invoice/{invoiceid}/send",
+        });
+
+        this.routes.set("paypal_invoice_get", {
+            config: {
+                id: "paypal_invoice_get",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.get(request.params.invoiceid, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+                return;
+            },
+            method: "GET",
+            path: "/paypal/invoice/{invoiceid}",
+        });
+
+        this.routes.set("paypal_invoice_cancel", {
+            config: {
+                id: "paypal_invoice_cancel",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.cancel(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "POST",
+            path: "/paypal/invoice/{invoiceid}/cancel",
+        });
+
+        this.routes.set("paypal_invoice_remind", {
+            config: {
+                id: "paypal_invoice_remind",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.remind(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "POST",
+            path: "/paypal/invoice/{invoiceid}/remind",
         });
 
     }
@@ -91,13 +172,8 @@ export class HapiPayPal {
     public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
         this.server = server;
         const promises = [];
-        const sdkSchema = Joi.object().keys({
-            client_id: Joi.string().min(10).required(),
-            client_secret: Joi.string().min(10).required(),
-            mode: Joi.string().valid("sandbox", "live").required(),
-        });
 
-        const sdkValidate = Joi.validate(options.sdk, sdkSchema);
+        const sdkValidate = Joi.validate(options.sdk, paypalSdkSchema);
         if (sdkValidate.error) {
             throw sdkValidate.error;
         }
@@ -136,6 +212,26 @@ export class HapiPayPal {
         });
     }
 
+    private defaultResponseHandler(
+        ohandler: IPayPalRouteHandler,
+        request: hapi.Request,
+        reply: hapi.ReplyNoContinue,
+        error: paypal.SDKError,
+        response: any,
+    ) {
+        if (ohandler) {
+            ohandler(request, reply, error, response);
+        } else {
+            if (error) {
+                const bError = boom.badRequest(error.response.message);
+                (bError.output.payload as any).details = error.response.details;
+                bError.reformat();
+                return reply(bError);
+            }
+            return reply(response);
+        }
+    }
+
     private buildRoutes(routes: [Partial<IPayPalRouteConfiguration>]) {
         routes.forEach((route) =>  {
             const dRoute = this.routes.get(route.config.id);
@@ -149,84 +245,6 @@ export class HapiPayPal {
             this.server.route({ ...route, ...nRoute });
         });
     }
-
-    /*
-    private buildRoute(route: Partial<IPayPalRouteConfiguration>): hapi.RouteConfiguration {
-        const handler = route.handler as hapi.RouteHandler;
-        let nHandler: hapi.RouteHandler;
-
-        if (!route.config || !route.config.id) {
-            throw new Error("You must set route.config.id");
-        }
-
-        switch (route.config.id) {
-            case "paypal_payment_create":
-                route.path = route.path || "/paypal/payment/create";
-                route.method = route.method || "POST";
-                nHandler = (request, reply) => {
-                    const temp = arguments;
-                    paypal.payment.create(this.getMockData("payment_create"), (error, payment) => {
-                        if (handler) {
-                            handler.apply(this, [request, reply, error, payment]);
-                        } else {
-                            error ? reply(error) : reply(payment);
-                        }
-                    });
-                };
-                route.handler = nHandler;
-                break;
-
-            case "paypal_webhooks_listen":
-                route.method = "POST";
-                route.path = route.path || "/paypal/webhooks/listen";
-                nHandler = (request, reply) => {
-                    const temp = arguments;
-                    handler.apply(this, [request, reply]);
-                    reply("Got it!");
-                };
-                route.handler = nHandler;
-                break;
-        }
-        // this.routes.push(route as hapi.RouteConfiguration);
-        return route as hapi.RouteConfiguration;
-    }
-
-    private getMockData(type: string): any {
-        let json: any;
-        switch (type) {
-            case "payment_create":
-                json = {
-                    intent: "sale",
-                    payer: {
-                        payment_method: "paypal",
-                    },
-                    redirect_urls: {
-                        cancel_url: "http://cancel.url",
-                        return_url: "http://return.url",
-                    },
-                    transactions: [{
-                        amount: {
-                            currency: "USD",
-                            total: "1.00",
-                        },
-                        description: "This is the payment description.",
-                        item_list: {
-                            items: [{
-                                currency: "USD",
-                                name: "item",
-                                price: "1.00",
-                                quantity: 1,
-                                sku: "item",
-                            }],
-                        },
-                    }],
-                };
-                break;
-        }
-
-        return json;
-    }
-    */
 
     private async enableWebhooks(webhook: paypal.notification.webhook.Webhook) {
         try {

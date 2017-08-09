@@ -1,5 +1,6 @@
 import * as hapi from "hapi";
 import * as paypal from "paypal-rest-sdk";
+export * from "./joi";
 export declare type Partial<T> = {
     [P in keyof T]?: T[P];
 };
@@ -29,6 +30,7 @@ export declare class HapiPayPal {
     private server;
     constructor();
     register: hapi.PluginFunction<any>;
+    private defaultResponseHandler(ohandler, request, reply, error, response);
     private buildRoutes(routes);
     private enableWebhooks(webhook);
     private getWebhookEventTypes();
