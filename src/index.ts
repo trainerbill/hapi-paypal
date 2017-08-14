@@ -96,6 +96,8 @@ export class HapiPayPal {
                         method: "POST",
                         payload: response,
                         url: "/paypal/webhooks/listen",
+                    }, (res) => {
+                        reply(response);
                     });
                 });
                 return;
