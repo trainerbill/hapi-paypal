@@ -12,6 +12,11 @@ export const config: index.IHapiPayPalOptions = {
         },
         {
             config: {
+                id: "paypal_sale_refund",
+            },
+        },
+        {
+            config: {
                 id: "paypal_webhooks_listen",
             },
             handler: (request, reply) => {

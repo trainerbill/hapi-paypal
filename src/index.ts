@@ -195,6 +195,20 @@ export class HapiPayPal {
             path: "/paypal/invoice/{invoiceid}/remind",
         });
 
+        this.routes.set("paypal_sale_refund", {
+            config: {
+                id: "paypal_sale_refund",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.sale.refund(request.params.transactionid, request.payload || {}, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+                return;
+            },
+            method: "POST",
+            path: "/paypal/sale/{transactionid}/refund",
+        });
+
     }
 
     // tslint:disable-next-line:max-line-length
