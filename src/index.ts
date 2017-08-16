@@ -207,6 +207,13 @@ export class HapiPayPal {
             throw sdkValidate.error;
         }
 
+        if (!options.sdk.headers && !options.sdk.headers["PayPal-Partner-Attribution-Id"]) {
+            if (!options.sdk.headers) {
+                options.sdk.headers = {};
+            }
+            options.sdk.headers["PayPal-Partner-Attribution-Id"] = "Hapi-PayPal";
+        }
+
         paypal.configure(options.sdk);
 
         this.server.expose("paypal", paypal);
