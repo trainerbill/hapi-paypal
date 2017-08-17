@@ -275,8 +275,8 @@ export class HapiPayPal {
         } else {
             if (error) {
                 const bError = boom.badRequest(error.response.message);
-                (bError.output.payload as any).details = error.response.details;
-                // bError.reformat();
+                (bError.output.payload as any).details = error.response;
+                bError.reformat();
                 return reply(bError);
             }
             return reply(response);
