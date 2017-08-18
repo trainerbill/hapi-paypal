@@ -9,11 +9,12 @@ export interface IHapiPayPalOptions {
     routes?: [Partial<IPayPalRouteConfiguration>];
     webhook?: paypal.notification.webhook.Webhook;
 }
+export interface IPayPalRouteConfig extends hapi.RouteAdditionalConfigurationOptions {
+    id: string;
+}
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: IPayPalRouteHandler;
-    config: {
-        id: string;
-    };
+    config: IPayPalRouteConfig;
 }
 export declare type IPayPalRouteHandler = (request: hapi.Request, reply: hapi.ReplyNoContinue, error: any, response: any) => void;
 export interface InternalRouteConfiguration extends hapi.RouteConfiguration {

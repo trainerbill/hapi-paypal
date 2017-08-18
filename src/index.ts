@@ -16,11 +16,13 @@ export interface IHapiPayPalOptions {
     webhook?: paypal.notification.webhook.Webhook;
 }
 
+export interface IPayPalRouteConfig extends hapi.RouteAdditionalConfigurationOptions {
+    id: string;
+}
+
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: IPayPalRouteHandler;
-    config: {
-        id: string;
-    };
+    config: IPayPalRouteConfig;
 }
 
 export type IPayPalRouteHandler = (
