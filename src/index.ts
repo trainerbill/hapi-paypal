@@ -307,8 +307,9 @@ export class HapiPayPal {
 
     private async enableWebhooks(webhook: paypal.notification.webhook.Webhook) {
         try {
-            this.webhookEvents = await this.getWebhookEventTypes();
-            const accountWebHooks = await this.getAccountWebhooks();
+            const w = await Promise.all([this.getWebhookEventTypes(), this.getAccountWebhooks()]);
+            this.webhookEvents = w[0];
+            const accountWebHooks = w[1];
             this.webhook = accountWebHooks.filter((hook) => hook.url === webhook.url)[0];
             this.webhook = !this.webhook ? await this.createWebhook(webhook) : await this.replaceWebhook(webhook);
         } catch (err) {
