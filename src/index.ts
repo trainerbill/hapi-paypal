@@ -247,7 +247,13 @@ export class HapiPayPal {
                 throw validate.error;
             }
 
-            const webhookRoute = this.server.lookup("paypal_webhooks_listen");
+            let webhookRoute: any;
+            this.server.connections.forEach((connection) => {
+                if (!webhookRoute) {
+                    webhookRoute = connection.lookup("paypal_webhooks_listen");
+                }
+            });
+
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
