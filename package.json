@@ -1,6 +1,6 @@
 {
   "name": "hapi-paypal",
-  "version": "0.0.52",
+  "version": "0.0.53",
   "description": "A hapi plugin to interface with PayPal Rest API's and webhooks.",
   "license": "MIT",
   "repository": "https://github.com/trainerbill/hapi-paypal",
