@@ -53,6 +53,11 @@ export const config: index.IHapiPayPalOptions = {
                 id: "paypal_invoice_remind",
             },
         },
+        {
+            config: {
+                id: "paypal_invoice_update",
+            },
+        },
     ],
     sdk: {
         client_id: process.env.PAYPAL_CLIENT_ID,

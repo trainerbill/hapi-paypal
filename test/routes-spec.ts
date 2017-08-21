@@ -106,3 +106,14 @@ tape("paypal_invoice_remind route", async (t) => {
     t.equal(res.payload, JSON.stringify(payload));
     sandbox.restore();
  });
+tape("paypal_invoice_update route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "update").yields(null, payload);
+    const res = await server.inject({
+        method: "PUT",
+        payload,
+        url: "/paypal/invoice/{invoiceid}",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
