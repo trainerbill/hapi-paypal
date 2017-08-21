@@ -184,6 +184,19 @@ export class HapiPayPal {
             path: "/paypal/invoice/{invoiceid}/cancel",
         });
 
+        this.routes.set("paypal_invoice_update", {
+            config: {
+                id: "paypal_invoice_update",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.update(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "PUT",
+            path: "/paypal/invoice/{invoiceid}",
+        });
+
         this.routes.set("paypal_invoice_remind", {
             config: {
                 id: "paypal_invoice_remind",
