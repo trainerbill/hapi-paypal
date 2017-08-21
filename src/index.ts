@@ -16,11 +16,13 @@ export interface IHapiPayPalOptions {
     webhook?: paypal.notification.webhook.Webhook;
 }
 
+export interface IPayPalRouteConfig extends hapi.RouteAdditionalConfigurationOptions {
+    id: string;
+}
+
 export interface IPayPalRouteConfiguration extends hapi.RouteConfiguration {
     handler?: IPayPalRouteHandler;
-    config: {
-        id: string;
-    };
+    config: IPayPalRouteConfig;
 }
 
 export type IPayPalRouteHandler = (
@@ -84,6 +86,35 @@ export class HapiPayPal {
             },
             method: "POST",
             path: "/paypal/webhooks/listen",
+        });
+
+        this.routes.set("paypal_webhooks_test", {
+            config: {
+                id: "paypal_webhooks_test",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.notification.webhookEvent.get(request.params.webhookid, request.payload, (error, response) => {
+                    this.server.inject({
+                        headers: {
+                            "PAYPAL-AUTH-ALGO": "SHA256withRSA",
+                            // tslint:disable-next-line:max-line-length
+                            "PAYPAL-CERT-URL": "https://api.sandbox.paypal.com/v1/notifications/certs/CERT-360caa42-fca2a594-aecacc47",
+                            "PAYPAL-TRANSMISSION-ID": "612a7da0-7962-11e7-ac1e-6b62a8a99ac4",
+                            // tslint:disable-next-line:max-line-length
+                            "PAYPAL-TRANSMISSION-SIG": "ndfYExTW3yL7bE2EyxrtoSl3nzXBLF3oPehp2DUodt2KMM3qw9STgYes2WJ8lpQPA40Hrtrbac/xb/Hh73Oc4hf0ELrzNGhkGllQM5SgpqM/E+AJijQcQR35SHd+ghp9yh1FOQvcNTtU06e8IqYQIExVoZ0aq9NWvughtC4ELA4SGAqWxhM+jHpzZyOen3E4YJrr5qtOHroPjiTMkHBgYh50VZMPl94D6GTTdPU1gSkXR98WGyvVKuAJ4YNF5mppIYjlBm1RQYw3zj0xmlA6VSlLMW5T0WDo8nJk2PK5RNCG1Y+gIZBOfgqpMH8R4qrBXbppfTYMFh+gWPpk33bsnw==",
+                            "PAYPAL-TRANSMISSION-TIME": "2017-08-04T22:15:10Z",
+                        },
+                        method: "POST",
+                        payload: response,
+                        url: "/paypal/webhooks/listen",
+                    }, (res) => {
+                        reply(response);
+                    });
+                });
+                return;
+            },
+            method: "GET",
+            path: "/paypal/webhooks/test/{webhookid}",
         });
 
         this.routes.set("paypal_invoice_search", {
@@ -153,6 +184,19 @@ export class HapiPayPal {
             path: "/paypal/invoice/{invoiceid}/cancel",
         });
 
+        this.routes.set("paypal_invoice_update", {
+            config: {
+                id: "paypal_invoice_update",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.invoice.update(request.params.invoiceid, request.payload, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+            },
+            method: "PUT",
+            path: "/paypal/invoice/{invoiceid}",
+        });
+
         this.routes.set("paypal_invoice_remind", {
             config: {
                 id: "paypal_invoice_remind",
@@ -166,6 +210,20 @@ export class HapiPayPal {
             path: "/paypal/invoice/{invoiceid}/remind",
         });
 
+        this.routes.set("paypal_sale_refund", {
+            config: {
+                id: "paypal_sale_refund",
+            },
+            handler: (request, reply, ohandler) => {
+                paypal.sale.refund(request.params.transactionid, request.payload || {}, (error, response) => {
+                    this.defaultResponseHandler(ohandler, request, reply, error, response);
+                });
+                return;
+            },
+            method: "POST",
+            path: "/paypal/sale/{transactionid}/refund",
+        });
+
     }
 
     // tslint:disable-next-line:max-line-length
@@ -176,6 +234,14 @@ export class HapiPayPal {
         const sdkValidate = Joi.validate(options.sdk, paypalSdkSchema);
         if (sdkValidate.error) {
             throw sdkValidate.error;
+        }
+
+        if (typeof options.sdk.headers !== "object") {
+            options.sdk.headers = {};
+        }
+
+        if (!options.sdk.headers["PayPal-Partner-Attribution-Id"]) {
+            options.sdk.headers["PayPal-Partner-Attribution-Id"] = "Hapi-PayPal";
         }
 
         paypal.configure(options.sdk);
@@ -196,7 +262,13 @@ export class HapiPayPal {
                 throw validate.error;
             }
 
-            const webhookRoute = this.server.lookup("paypal_webhooks_listen");
+            let webhookRoute: any;
+            this.server.connections.forEach((connection) => {
+                if (!webhookRoute) {
+                    webhookRoute = connection.lookup("paypal_webhooks_listen");
+                }
+            });
+
             if (!webhookRoute) {
                 throw new Error("You enabled webhooks without a route listener.");
             }
@@ -224,7 +296,7 @@ export class HapiPayPal {
         } else {
             if (error) {
                 const bError = boom.badRequest(error.response.message);
-                (bError.output.payload as any).details = error.response.details;
+                (bError.output.payload as any).details = error.response;
                 bError.reformat();
                 return reply(bError);
             }
@@ -248,8 +320,9 @@ export class HapiPayPal {
 
     private async enableWebhooks(webhook: paypal.notification.webhook.Webhook) {
         try {
-            this.webhookEvents = await this.getWebhookEventTypes();
-            const accountWebHooks = await this.getAccountWebhooks();
+            const w = await Promise.all([this.getWebhookEventTypes(), this.getAccountWebhooks()]);
+            this.webhookEvents = w[0];
+            const accountWebHooks = w[1];
             this.webhook = accountWebHooks.filter((hook) => hook.url === webhook.url)[0];
             this.webhook = !this.webhook ? await this.createWebhook(webhook) : await this.replaceWebhook(webhook);
         } catch (err) {
