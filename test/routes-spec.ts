@@ -49,3 +49,60 @@ tape("paypal_invoice_search route", async (t) => {
     t.equal(res.payload, JSON.stringify(payload));
     sandbox.restore();
  });
+
+ tape("paypal_invoice_create route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "create").yields(null, payload);
+    const res = await server.inject({
+        method: "POST",
+        payload,
+        url: "/paypal/invoice",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
+
+ tape("paypal_invoice_send route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "send").yields(null, payload);
+    const res = await server.inject({
+        method: "POST",
+        payload,
+        url: "/paypal/invoice/{invoiceid}/send",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
+tape("paypal_invoice_get route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "get").yields(null, payload);
+    const res = await server.inject({
+        method: "GET",
+        payload,
+        url: "/paypal/invoice/{invoiceid}",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
+tape("paypal_invoice_cancel route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "cancel").yields(null, payload);
+    const res = await server.inject({
+        method: "POST",
+        payload,
+        url: "/paypal/invoice/{invoiceid}/cancel",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
+tape("paypal_invoice_remind route", async (t) => {
+    const sandbox = sinon.sandbox.create();
+    const configStub = sandbox.stub(paypal.invoice, "remind").yields(null, payload);
+    const res = await server.inject({
+        method: "POST",
+        payload,
+        url: "/paypal/invoice/{invoiceid}/remind",
+    });
+    t.equal(res.payload, JSON.stringify(payload));
+    sandbox.restore();
+ });
