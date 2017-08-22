@@ -1,12 +1,9 @@
 import * as hapi from "hapi";
 import * as paypal from "paypal-rest-sdk";
 export * from "./joi";
-export declare type Partial<T> = {
-    [P in keyof T]?: T[P];
-};
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes?: [Partial<IPayPalRouteConfiguration>];
+    routes?: Array<Partial<IPayPalRouteConfiguration>>;
     webhook?: paypal.notification.webhook.Webhook;
 }
 export interface IPayPalRouteConfig extends hapi.RouteAdditionalConfigurationOptions {

@@ -6,13 +6,9 @@ import * as pkg from "../package.json";
 import { paypalSdkSchema } from "./joi";
 export * from "./joi";
 
-export type Partial<T> = {
-    [P in keyof T]?: T[P];
-};
-
 export interface IHapiPayPalOptions {
     sdk: any;
-    routes?: [Partial<IPayPalRouteConfiguration>];
+    routes?: Array<Partial<IPayPalRouteConfiguration>>;
     webhook?: paypal.notification.webhook.Webhook;
 }
 
@@ -304,7 +300,7 @@ export class HapiPayPal {
         }
     }
 
-    private buildRoutes(routes: [Partial<IPayPalRouteConfiguration>]) {
+    private buildRoutes(routes: Array<Partial<IPayPalRouteConfiguration>>) {
         routes.forEach((route) =>  {
             const dRoute = this.routes.get(route.config.id);
             const nRoute: hapi.RouteConfiguration = {
