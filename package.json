@@ -19,6 +19,7 @@
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
+    "coverage": "npm test | coveralls",
     "clean": "rimraf lib coverage",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
     "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
@@ -28,13 +29,11 @@
     "release": "npm test && npm run build && npm version --",
     "release:quick": "npm test && npm run build && git add -A && git commit -m 'Quick Release Patch' && npm version patch && git push --tags",
     "postversion": "npm publish && git push && git push --tags",
-    "reinstall": "rimraf node_modules package-lock.json && npm install",
-    "start": "ts-node -r dotenv/config ./test/server.ts"
+    "reinstall": "rimraf node_modules package-lock.json && npm install"
   },
   "dependencies": {
-    "@types/paypal-rest-sdk": "^1.7.0",
     "joi": "^10.6.0",
-    "paypal-rest-sdk": "^1.7.1",
+    "paypal-rest-api": "0.0.17",
     "us": "^2.0.0"
   },
   "peerDependencies": {
@@ -72,5 +71,6 @@
   },
   "engines": {
     "node": ">=4.0.0"
-  }
+  },
+  "false": {}
 }

@@ -1,25 +1,49 @@
 import * as tape from "blue-tape";
 import * as hapi from "hapi";
-import * as paypal from "paypal-rest-sdk";
+import * as paypal from "paypal-rest-api";
 import * as sinon from "sinon";
 import * as index from "../src";
 import { config } from "./server";
 
 const nconfig = {
-    routes: config.routes,
+    routes: [{
+        config: {
+            id: "paypal_webhooks_listen",
+        },
+        handler: (request: any, reply: any) => {
+            reply("GOT IT!");
+        },
+    }],
     sdk: {
         client_id: "asdfsadfasdfasdfsadfdsafasdfdsaf",
         client_secret: "asdfsadfasdfasdfsadfdsafasdfdsaf",
         mode: "sandbox",
     },
-    webhook: config.webhook,
+    webhook: {
+        event_types: [
+            {
+                name: "INVOICING.INVOICE.PAID",
+            },
+            {
+                name: "INVOICING.INVOICE.CANCELLED",
+            },
+            {
+                name: "PAYMENT.SALE.COMPLETED",
+            },
+        ],
+        url: "https://www.youneedtochangethis.com/webhooks",
+    },
 };
 
-tape("create webhook", async (t) => {
+
+
+tape("create webhook should", async (t) => {
     const sandbox = sinon.sandbox.create();
-    const eventsStub = sandbox.stub(paypal.notification.webhookEventType, "list").yields(null, { event_types: [] });
-    const webhookStub = sandbox.stub(paypal.notification.webhook, "list").yields(null, { webhooks: [] });
-    const createWebhookStub = sandbox.stub(paypal.notification.webhook, "create").yields(null, { id: "webhookid" });
+    const paypalStub = new paypal.PayPalRestApi(nconfig.sdk);
+    const paypalTest = sandbox.stub(paypal, "PayPalRestApi").returns(paypalStub);
+    const eventsStub = sandbox.stub(paypalStub.webhook.api, "types").resolves({ body: { event_types: [] } });
+    const webhookStub = sandbox.stub(paypalStub.webhook.api, "list").resolves({ body: { webhooks: [] } });
+    const createWebhookStub = sandbox.stub(paypalStub.webhook.api, "create").resolves({ body: paypal.mockWebhook });
     const server = new hapi.Server();
     server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
     const hapiPaypal = new index.HapiPayPal();
@@ -29,19 +53,25 @@ tape("create webhook", async (t) => {
             register: hapiPaypal.register,
         });
         // tslint:disable-next-line:max-line-length
-        t.equal(createWebhookStub.calledWith({ ...config.webhook, ...{ url: "https://www.youneedtochangethis.com/paypal/webhooks/listen" } }), true, "should call create webhook api with config");
+        t.equal(createWebhookStub.withArgs({ body: nconfig.webhook }).called, true, "should call create webhook api with config");
     } catch (err) {
         t.fail("should not fail");
     }
     sandbox.restore();
  });
 
+nconfig.webhook.url = paypal.mockWebhook.url;
 tape("replace webhook", async (t) => {
     const sandbox = sinon.sandbox.create();
-    const eventsStub = sandbox.stub(paypal.notification.webhookEventType, "list").yields(null, { event_types: [] });
-    // tslint:disable-next-line:max-line-length
-    const webhookStub = sandbox.stub(paypal.notification.webhook, "list").yields(null, { webhooks: [{ id: "testid", url: "https://www.youneedtochangethis.com/paypal/webhooks/listen" }] });
-    const replaceWebhookStub = sandbox.stub(paypal.notification.webhook, "replace").yields(null, { id: "webhookid" });
+    const paypalStub = new paypal.PayPalRestApi(nconfig.sdk);
+    const paypalTest = sandbox.stub(paypal, "PayPalRestApi").returns(paypalStub);
+    const eventsStub = sandbox.stub(paypalStub.webhook.api, "types").resolves({ body: { event_types: [] } });
+    const webhookStub = sandbox.stub(paypalStub.webhook.api, "list").resolves({
+      body: {
+        webhooks: [paypal.mockWebhook],
+      },
+    });
+    const replaceWebhookStub = sandbox.stub(paypalStub.webhook.api, "update").resolves({ body: paypal.mockWebhook });
     const server = new hapi.Server();
     server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
     const hapiPaypal = new index.HapiPayPal();
@@ -50,13 +80,8 @@ tape("replace webhook", async (t) => {
             options: nconfig,
             register: hapiPaypal.register,
         });
-        const replaceRequest = [{
-            op: "replace",
-            path: "/event_types",
-            value: config.webhook.event_types,
-        }];
         // tslint:disable-next-line:max-line-length
-        t.equal(replaceWebhookStub.calledWith("testid", replaceRequest), true, "should call replace webhook api with config");
+        t.equal(replaceWebhookStub.withArgs(paypal.mockWebhook.id ).called, true, "should call replace webhook api with config");
     } catch (err) {
         t.fail("should not fail");
     }
@@ -65,11 +90,16 @@ tape("replace webhook", async (t) => {
 
 tape("paypal_webhook_listen route", async (t) => {
     const sandbox = sinon.sandbox.create();
-    const eventsStub = sandbox.stub(paypal.notification.webhookEventType, "list").yields(null, { event_types: [] });
-    const verifyStub = sandbox.stub(paypal.notification.webhookEvent, "verify").yields(null, {verification: "success"});
-    // tslint:disable-next-line:max-line-length
-    const webhookStub = sandbox.stub(paypal.notification.webhook, "list").yields(null, { webhooks: [{ id: "testid", url: "https://www.youneedtochangethis.com/paypal/webhooks/listen" }] });
-    const replaceWebhookStub = sandbox.stub(paypal.notification.webhook, "replace").yields(null, { id: "webhookid" });
+    const paypalStub = new paypal.PayPalRestApi(nconfig.sdk);
+    const paypalTest = sandbox.stub(paypal, "PayPalRestApi").returns(paypalStub);
+    const eventsStub = sandbox.stub(paypalStub.webhook.api, "types").resolves({ body: { event_types: [] } });
+    const verifyStub = sandbox.stub(paypalStub.webhookEvent.api, "verify").resolves({verification: "success"});
+    const webhookStub = sandbox.stub(paypalStub.webhook.api, "list").resolves({
+      body: {
+        webhooks: [paypal.mockWebhook],
+      },
+    });
+    const replaceWebhookStub = sandbox.stub(paypalStub.webhook.api, "update").resolves({ body: paypal.mockWebhook });
     const server = new hapi.Server();
     server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
     const hapiPaypal = new index.HapiPayPal();

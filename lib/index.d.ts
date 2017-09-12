@@ -1,10 +1,9 @@
 import * as hapi from "hapi";
-import * as paypal from "paypal-rest-sdk";
-export * from "./joi";
+import { IConfigureOptions, IWebhook } from "paypal-rest-api";
 export interface IHapiPayPalOptions {
-    sdk: any;
+    sdk: IConfigureOptions;
     routes?: Array<Partial<IPayPalRouteConfiguration>>;
-    webhook?: paypal.notification.webhook.Webhook;
+    webhook?: IWebhook;
 }
 export interface IPayPalRouteConfig extends hapi.RouteAdditionalConfigurationOptions {
     id: string;
@@ -26,8 +25,10 @@ export declare class HapiPayPal {
     private webhook;
     private routes;
     private server;
+    private paypal;
     constructor();
     register: hapi.PluginFunction<any>;
+    private setupRoutes();
     private defaultResponseHandler(ohandler, request, reply, error, response);
     private buildRoutes(routes);
     private enableWebhooks(webhook);
