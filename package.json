@@ -36,9 +36,6 @@
     "paypal-rest-api": "^0.0.20",
     "us": "^2.0.0"
   },
-  "peerDependencies": {
-    "mongoose": "^4.11.3"
-  },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
     "@types/dotenv": "^4.0.0",
