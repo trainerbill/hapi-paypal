@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "joi": "^10.6.0",
-    "paypal-rest-api": "^0.0.20",
+    "paypal-rest-api": "^0.0.24",
     "us": "^2.0.0"
   },
   "devDependencies": {
