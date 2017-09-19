@@ -30,6 +30,7 @@ export interface InternalRouteConfiguration extends hapi.RouteConfiguration {
   handler?: InternalRouteHandler;
   config: {
     id: string;
+    payload?: any;
   };
 }
 
@@ -108,11 +109,14 @@ export class HapiPayPal {
     this.routes.set("paypal_webhooks_listen", {
       config: {
         id: "paypal_webhooks_listen",
+        payload: {
+          parse: false,
+        },
       },
       handler: async (request, reply, ohandler) => {
         try {
           // Find this request.raw.req
-          const response = await this.paypal.webhookEvent.verify("test");
+          const response = await this.paypal.webhookEvent.verify(request.payload.toString());
           this.defaultResponseHandler(ohandler, request, reply, null, response);
         } catch (err) {
           this.defaultResponseHandler(ohandler, request, reply, err, null);
@@ -301,6 +305,10 @@ export class HapiPayPal {
     routes.forEach((route) => {
       const dRoute = this.routes.get(route.config.id);
       const nRoute: hapi.RouteConfiguration = {
+        config: {
+          ...dRoute.config,
+          ...route.config,
+        },
         handler: (request, reply) => {
           dRoute.handler(request, reply, route.handler);
         },
