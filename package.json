@@ -32,7 +32,7 @@
     "reinstall": "rimraf node_modules yarn.lock && yarn install"
   },
   "dependencies": {
-    "joi": "^11.0.2",
+    "joi": "^11.0.3",
     "paypal-rest-api": "^0.0.45",
     "us": "^2.0.0"
   },
