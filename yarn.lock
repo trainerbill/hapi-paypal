@@ -1815,9 +1815,9 @@ path-type@^2.0.0:
   dependencies:
     pify "^2.0.0"
 
-paypal-rest-api@^0.0.42:
-  version "0.0.42"
-  resolved "https://registry.yarnpkg.com/paypal-rest-api/-/paypal-rest-api-0.0.42.tgz#5329b352d85ae5a3edfeed390f9cce0eef4effff"
+paypal-rest-api@^0.0.43:
+  version "0.0.43"
+  resolved "https://registry.yarnpkg.com/paypal-rest-api/-/paypal-rest-api-0.0.43.tgz#d36b86cad7de26ea038a1b469ea9fc60f3e1af20"
   dependencies:
     "@types/joi" "^10.4.1"
     "@types/lodash.get" "^4.4.3"

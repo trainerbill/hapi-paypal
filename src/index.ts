@@ -118,19 +118,11 @@ export class HapiPayPal {
       },
       handler: async (request, reply, ohandler) => {
         try {
-          const additions = JSON.stringify({
-            transmission_id: request.headers["paypal-transmission-id"],
-            transmission_time: request.headers["paypal-transmission-time"],
-            // tslint:disable-next-line:object-literal-sort-keys
-            cert_url: request.headers["paypal-cert-url"],
-            auth_algo: request.headers["paypal-auth-algo"],
-            transmission_sig: request.headers["paypal-transmission-sig"],
-            webhook_id: this.webhook.model.id,
-          });
-          const additionsString = additions.slice(1, -1);
-          const full = request.payload.toString();
-          const verify = full.slice(0, 1) + additionsString + ", " + full.slice(1);
-          const response = await this.paypal.webhookEvent.verify(verify);
+          // tslint:disable-next-line:max-line-length
+          const response = await this.paypal.webhookEvent.verify(this.webhook.model.id, request.headers, request.payload.toString());
+          if (response.verification_status !== "SUCCESS") {
+            throw new Error("Webhook Verification Error");
+          }
           this.defaultResponseHandler(ohandler, request, reply, null, response);
         } catch (err) {
           this.defaultResponseHandler(ohandler, request, reply, err, null);
