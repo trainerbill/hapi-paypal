@@ -19,9 +19,6 @@ export const config: index.IHapiPayPalOptions = {
             config: {
                 id: "paypal_webhooks_listen",
             },
-            handler: (request, reply) => {
-                reply("GOT IT!");
-            },
         },
         {
             config: {
