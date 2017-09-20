@@ -118,11 +118,12 @@ export class HapiPayPal {
       },
       handler: async (request, reply, ohandler) => {
         try {
-          // tslint:disable-next-line:max-line-length
+          // tslint:disable-next-line:max-line-length 1X200851AC360471T
           const response = await this.paypal.webhookEvent.verify(this.webhook.model.id, request.headers, request.payload.toString());
           if (response.verification_status !== "SUCCESS") {
             throw new Error("Webhook Verification Error");
           }
+          request.payload = JSON.parse(request.payload.toString());
           this.defaultResponseHandler(ohandler, request, reply, null, response);
         } catch (err) {
           this.defaultResponseHandler(ohandler, request, reply, err, null);
