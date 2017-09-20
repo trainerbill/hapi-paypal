@@ -57,7 +57,7 @@ export class HapiPayPal {
   // tslint:disable-next-line:max-line-length
   public register: hapi.PluginFunction<any> = (server: hapi.Server, options: IHapiPayPalOptions, next: hapi.ContinuationFunction) => {
     this.server = server;
-    const promises = [];
+    let webhookPromise = Promise.resolve();
 
     this.paypal = new PayPalRestApi(options.sdk);
     if (!this.paypal.config.requestOptions.headers["PayPal-Partner-Attribution-Id"]) {
@@ -65,10 +65,6 @@ export class HapiPayPal {
     }
 
     this.server.expose("paypal", this.paypal);
-    this.setupRoutes();
-    if (options.routes && options.routes.length > 0) {
-      this.buildRoutes(options.routes);
-    }
 
     if (options.webhook) {
       const webhooksSchema = Joi.object().keys({
@@ -81,12 +77,19 @@ export class HapiPayPal {
         throw validate.error;
       }
 
-      promises.push(this.enableWebhooks(options.webhook));
+      webhookPromise = this.enableWebhooks(options.webhook);
 
     }
-    Promise.all(promises).then(() => {
-      next();
-    });
+
+    webhookPromise
+      .then(() => {
+        this.setupRoutes();
+        if (options.routes && options.routes.length > 0) {
+          this.buildRoutes(options.routes);
+        }
+      })
+      .then(() => next());
+
   }
 
   private setupRoutes() {
@@ -115,8 +118,19 @@ export class HapiPayPal {
       },
       handler: async (request, reply, ohandler) => {
         try {
-          // Find this request.raw.req
-          const response = await this.paypal.webhookEvent.verify(request.payload.toString());
+          const additions = JSON.stringify({
+            transmission_id: request.headers["paypal-transmission-id"],
+            transmission_time: request.headers["paypal-transmission-time"],
+            // tslint:disable-next-line:object-literal-sort-keys
+            cert_url: request.headers["paypal-cert-url"],
+            auth_algo: request.headers["paypal-auth-algo"],
+            transmission_sig: request.headers["paypal-transmission-sig"],
+            webhook_id: this.webhook.model.id,
+          });
+          const additionsString = additions.slice(1, -1);
+          const full = request.payload.toString();
+          const verify = full.slice(0, 1) + additionsString + ", " + full.slice(1);
+          const response = await this.paypal.webhookEvent.verify(verify);
           this.defaultResponseHandler(ohandler, request, reply, null, response);
         } catch (err) {
           this.defaultResponseHandler(ohandler, request, reply, err, null);
@@ -353,12 +367,13 @@ export class HapiPayPal {
 
   private async createWebhook(webhook: IWebhook) {
     const webhookmodel = new this.paypal.webhook(webhook);
-    await webhookmodel.create();
     this.webhook = webhookmodel;
+    await webhookmodel.create();
   }
 
   private async replaceWebhook(webhook: IWebhook) {
     const webhookmodel = new this.paypal.webhook(webhook);
+    this.webhook = webhookmodel;
     await webhookmodel.update([
       {
         op: "replace",
@@ -366,7 +381,6 @@ export class HapiPayPal {
         value: webhook.event_types,
       },
     ]);
-    this.webhook = webhookmodel;
   }
 
 }
