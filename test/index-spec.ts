@@ -12,11 +12,9 @@ const configuration = {
 };
 
 tape("should register plugin should", async (t) => {
+    const sandbox = sinon.sandbox.create();
     const server = new hapi.Server();
     server.connection({ port: process.env.PORT || 3000, host: process.env.IP || "0.0.0.0" });
-    const sandbox = sinon.sandbox.create();
-    const actualPaypal = new paypal.PayPalRestApi(configuration);
-    const paypalStub = sandbox.stub(paypal, "PayPalRestApi").returns(actualPaypal);
 
     await server.register({
         options: {
@@ -24,8 +22,8 @@ tape("should register plugin should", async (t) => {
          },
         register: hapiPaypal.register,
     });
-    t.equal(paypalStub.withArgs(configuration).called, true, "configure paypal-rest-api");
-    t.equal(server.plugins["hapi-paypal"].paypal, actualPaypal, "should expose paypal-rest-api library");
+    // tslint:disable-next-line:max-line-length
+    t.equal(server.plugins["hapi-paypal"].paypal instanceof paypal.PayPalRestApi, true, "should expose paypal-rest-api library");
     sandbox.restore();
 });
 
