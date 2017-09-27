@@ -30,16 +30,17 @@
     "release:quick": "git add -A && git commit -m 'Quick Release Patch' && yarn run release patch",
     "postversion": "git push --follow-tags",
     "reinstall": "rimraf node_modules yarn.lock && yarn install",
-    "start": "ts-node -r dotenv/config example/server.ts"
+    "start:dev": "cross-env NODE_ENV=development ts-node -r dot-env-json/lib/config example/server.ts"
   },
   "dependencies": {
+    "cross-env": "^5.0.5",
+    "dot-env-json": "^0.0.2",
     "joi": "^11.1.1",
     "paypal-rest-api": "^0.0.51",
     "us": "^2.0.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
-    "@types/dotenv": "^4.0.0",
     "@types/hapi": "^16.1.7",
     "@types/joi": "^10.4.0",
     "@types/node": "^8.0.31",

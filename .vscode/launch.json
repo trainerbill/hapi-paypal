@@ -12,7 +12,10 @@
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
             "runtimeArgs": [
                 "./node_modules/.bin/tape",
-                "test/**/*-spec.ts" ]
+                "test/**/*-spec.ts" ],
+            "env": {
+                "NODE_ENV": "test"
+            }
         },
         {
             "type": "node",
@@ -21,7 +24,10 @@
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
             "runtimeArgs": [
                 "./node_modules/.bin/tape",
-                "${file}" ]
+                "${file}" ],
+            "env": {
+                "NODE_ENV": "test"
+            }
         },
         {
             "type": "node",
@@ -30,8 +36,11 @@
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node",
             "runtimeArgs": [
                 "-r",
-                "dotenv/config",
-                "${workspaceRoot}/example/server.ts" ]
+                "dot-env-json/lib/config",
+                "${workspaceRoot}/example/server.ts" ],
+            "env": {
+                "NODE_ENV": "development"
+            }
         }
     ]
 }

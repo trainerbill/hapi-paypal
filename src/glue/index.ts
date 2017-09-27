@@ -1,5 +1,5 @@
 import * as boom from "boom";
-import { PluginRegistrationObject } from "hapi";
+import { PluginRegistrationObject, RouteAdditionalConfigurationOptions } from "hapi";
 import { HapiPayPal, IHapiPayPalOptions } from "../";
 
 export const hapiPayPal = new HapiPayPal();
@@ -10,8 +10,12 @@ hapiPayPal.routes.get("paypal_webhooks_listen").custom = async (request, reply, 
     console.log(request.payload);
 };
 
+const routes = process.env.PAYPAL_REST_ROUTES ?
+    process.env.PAYPAL_REST_ROUTES.split(",") :
+    Array.from(hapiPayPal.routes.keys());
+
 export const hapiPayPalOptions: IHapiPayPalOptions = {
-    routes: Array.from(hapiPayPal.routes.keys()),
+    routes,
     sdk: {
         client_id: process.env.PAYPAL_CLIENT_ID,
         client_secret: process.env.PAYPAL_CLIENT_SECRET,
@@ -31,7 +35,7 @@ export const hapiPayPalOptions: IHapiPayPalOptions = {
 export const hapiPayPalPlugin: PluginRegistrationObject<any> = {
     options: hapiPayPalOptions,
     register: hapiPayPal.register,
-    select: ["public"],
+    select: [process.env.PAYPAL_HAPI_CONNECTION || "public"],
 };
 
 export const hapiPayPalGlueRegistration = {
