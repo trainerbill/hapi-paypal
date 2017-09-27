@@ -371,7 +371,9 @@ export class HapiPayPal {
         if (options.webhook) {
             const webhooksSchema = Joi.object().keys({
                 event_types: Joi.array().min(1).required(),
-                url: Joi.string().uri({ scheme: ["https"] }).required(),
+                url: Joi.string()
+                        .replace(/^https:\/\/(www\.)?localhost/gi, "").uri({ scheme: ["https"] }).required()
+                        .error(new Error("Webhook url must be https and cannot be localhost.")),
             });
 
             const validate = Joi.validate(options.webhook, webhooksSchema);
