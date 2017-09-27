@@ -376,10 +376,10 @@ export class HapiPayPal {
 
             const validate = Joi.validate(options.webhook, webhooksSchema);
             if (validate.error) {
-                throw validate.error;
+                this.server.log("error", "Webhook configuration faild validation.");
+            } else {
+                webhookPromise = this.enableWebhooks(options.webhook);
             }
-
-            webhookPromise = this.enableWebhooks(options.webhook);
 
         }
 
