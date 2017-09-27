@@ -28,7 +28,7 @@ export const hapiPayPalOptions: IHapiPayPalOptions = {
     },
     webhook: {
         event_types: [...HapiPayPal.webhookEvents].map((event) => ({ name: event })),
-        url: process.env.HOSTNAME + process.env.PAYPAL_WEBHOOK_ROUTE,
+        url: `https://${process.env.HOSTNAME}${process.env.PAYPAL_WEBHOOK_ROUTE}`,
     },
 };
 
