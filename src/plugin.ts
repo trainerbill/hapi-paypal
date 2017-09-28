@@ -523,7 +523,7 @@ export class HapiPayPal {
         try {
             const accountWebHooks = await this.getAccountWebhooks();
             const twebhook = accountWebHooks.filter((hook: IWebhook) => hook.url === webhook.url)[0];
-            !twebhook ? await this.createWebhook(webhook) : await this.replaceWebhook(twebhook);
+            !twebhook ? await this.createWebhook(webhook) : await this.replaceWebhook({ ...twebhook, ...webhook });
         } catch (err) {
             try {
                 if (err.message) {
