@@ -524,8 +524,6 @@ export class HapiPayPal {
             const accountWebHooks = await this.getAccountWebhooks();
             const twebhook = accountWebHooks.filter((hook: IWebhook) => hook.url === webhook.url)[0];
             !twebhook ? await this.createWebhook(webhook) : await this.replaceWebhook(twebhook);
-            this.server.log("info", "Webhook enabled successfully");
-            this.server.log("info", this.webhook);
         } catch (err) {
             try {
                 if (err.message) {
@@ -533,13 +531,13 @@ export class HapiPayPal {
                     if (error.name !== "WEBHOOK_PATCH_REQUEST_NO_CHANGE") {
                         throw err;
                     }
-                    this.server.log("info", "Webhook enabled successfully");
-                    this.server.log("info", this.webhook);
                 }
             } catch (err) {
                 throw err;
             }
         }
+        this.server.log("info", "Webhook enabled successfully");
+        this.server.log("info", this.webhook.model);
     }
 
     private async getAccountWebhooks() {
