@@ -378,7 +378,7 @@ export class HapiPayPal {
 
             const validate = Joi.validate(options.webhook, webhooksSchema);
             if (validate.error) {
-                this.server.log("error", "Webhook configuration faild validation.");
+                this.server.log("error", validate.error);
             } else {
                 webhookPromise = this.enableWebhooks(options.webhook);
             }
@@ -524,6 +524,8 @@ export class HapiPayPal {
             const accountWebHooks = await this.getAccountWebhooks();
             const twebhook = accountWebHooks.filter((hook: IWebhook) => hook.url === webhook.url)[0];
             !twebhook ? await this.createWebhook(webhook) : await this.replaceWebhook(twebhook);
+            this.server.log("info", "Webhook enabled successfully");
+            this.server.log("info", this.webhook);
         } catch (err) {
             try {
                 if (err.message) {
