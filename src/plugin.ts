@@ -389,6 +389,7 @@ export class HapiPayPal {
             options.routes.forEach((route) => {
                 const { custom, ...hRoute } = this.routes.get(route);
                 this.server.route(hRoute);
+                this.server.log(["info", "hapi-paypal", "route"], hRoute);
             });
         }
 
@@ -536,8 +537,7 @@ export class HapiPayPal {
                 throw err;
             }
         }
-        this.server.log("info", "Webhook enabled successfully");
-        this.server.log("info", this.webhook.model);
+        this.server.log(["info", "hapi-paypal", "webhook"], this.webhook.model);
     }
 
     private async getAccountWebhooks() {
