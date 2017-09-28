@@ -533,6 +533,8 @@ export class HapiPayPal {
                     if (error.name !== "WEBHOOK_PATCH_REQUEST_NO_CHANGE") {
                         throw err;
                     }
+                    this.server.log("info", "Webhook enabled successfully");
+                    this.server.log("info", this.webhook);
                 }
             } catch (err) {
                 throw err;
