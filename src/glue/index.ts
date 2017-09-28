@@ -26,10 +26,10 @@ export const hapiPayPalOptions: IHapiPayPalOptions = {
           },
         },
     },
-    webhook: {
+    webhook: process.env.PAYPAL_WEBHOOK_ROUTE ? {
         event_types: [...HapiPayPal.webhookEvents].map((event) => ({ name: event })),
         url: `https://${process.env.HOSTNAME}${process.env.PAYPAL_WEBHOOK_ROUTE}`,
-    },
+    } : null,
 };
 
 export const hapiPayPalPlugin: PluginRegistrationObject<any> = {
